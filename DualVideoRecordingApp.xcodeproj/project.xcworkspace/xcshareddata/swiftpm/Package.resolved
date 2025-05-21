@@ -1,0 +1,51 @@
+{
+  "originHash" : "bf6821d65b97810a34ec1be2105ed9a457bf41296af3a3f5577b4726b4bbc8e5",
+  "pins" : [
+    {
+      "identity" : "storagesensekit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/c2p-cmd/StorageSenseKit/",
+      "state" : {
+        "branch" : "main",
+        "revision" : "1f2eca40d50bfe2ad6033772bedf82cb12e97598"
+      }
+    },
+    {
+      "identity" : "swift-algorithms",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-algorithms.git",
+      "state" : {
+        "revision" : "f6919dfc309e7f1b56224378b11e28bab5bccc42",
+        "version" : "1.2.0"
+      }
+    },
+    {
+      "identity" : "swift-collections",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-collections.git",
+      "state" : {
+        "revision" : "671108c96644956dddcd89dd59c203dcdb36cec7",
+        "version" : "1.1.4"
+      }
+    },
+    {
+      "identity" : "swift-numerics",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-numerics.git",
+      "state" : {
+        "revision" : "0a5bc04095a675662cf24757cc0640aa2204253b",
+        "version" : "1.0.2"
+      }
+    },
+    {
+      "identity" : "swifttoasts",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/c2p-cmd/SwiftToasts/",
+      "state" : {
+        "revision" : "bbfa303dd7da6d8116c0f0e8db125cfd98f0202d",
+        "version" : "1.0.0"
+      }
+    }
+  ],
+  "version" : 3
+}
