@@ -18,10 +18,13 @@ struct RecordingView: View {
     @StateObject private var speedTracker = SpeedTracker()
     
     @State private var orientation: UIDeviceOrientation = .portrait
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     
     var isPotrait: Bool { orientation.isPortrait }
+    var isIPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
     
     var body: some View {
+        // Use the same layout for both iPhone and iPad for a consistent experience
         VStack {
             topControls
                 .onReceive(vm.timer) { _ in
@@ -93,11 +96,9 @@ struct RecordingView: View {
         // MARK: - Errors from AppCameraState
         .onReceive(appCameraState.$error) { (errorOrNil: CustomError?) in
             guard let error = errorOrNil else { return }
-            
             let isRecording = appCameraState.isRecording
             self.vm.isRecording = isRecording
             self.vm.recordingDuration = isRecording ? appCameraState.recordedDuration : 0
-            
             var text = AttributedString("Error:")
             text.font = .callout.bold()
             text.append(AttributedString("\(error.errorDescription ?? error.description)"))
@@ -803,32 +804,74 @@ fileprivate struct RecordingViewPreview: View {
     
     @EnvironmentObject<AppCameraState> private var appCameraState
     @AppStorage(Constants.cameraPreviewKey.description) private var cameraPreviewString: String = "one"
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+    
+    var isIPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
     
     var body: some View {
         ZStack {
             switch cameraPreview {
             case .one:
-                backCamPreview
-                    .overlay(alignment: .topTrailing) {
-                        frontCamPreview
-                            .padding([.top, .trailing], 15)
-                    }
-            case .two:
-                VStack(alignment: .center, spacing: 2.5) {
+                if isIPad {
+                    iPadOneLayout
+                } else {
                     backCamPreview
-                    frontCamPreview
+                        .overlay(alignment: .topTrailing) {
+                            frontCamPreview
+                                .padding([.top, .trailing], 15)
+                        }
+                }
+            case .two:
+                if isIPad {
+                    iPadTwoLayout
+                } else {
+                    VStack(alignment: .center, spacing: 2.5) {
+                        backCamPreview
+                        frontCamPreview
+                    }
                 }
             case .three:
-                VStack {
-                    backCamPreview
-                        .padding([.top, .trailing], 75)
-                }
-                .overlay(alignment: .topTrailing) {
-                    frontCamPreview
+                if isIPad {
+                    iPadThreeLayout
+                } else {
+                    VStack {
+                        backCamPreview
+                            .padding([.top, .trailing], 75)
+                    }
+                    .overlay(alignment: .topTrailing) {
+                        frontCamPreview
+                    }
                 }
             }
         }
         .ignoresSafeArea(.all, edges: .horizontal)
+    }
+    
+    private var iPadOneLayout: some View {
+        HStack(spacing: 0) {
+            backCamPreview
+                .frame(width: previewFrame.width * 0.7)
+            frontCamPreview
+                .frame(width: previewFrame.width * 0.3)
+        }
+    }
+    
+    private var iPadTwoLayout: some View {
+        HStack(spacing: 0) {
+            backCamPreview
+                .frame(width: previewFrame.width * 0.5)
+            frontCamPreview
+                .frame(width: previewFrame.width * 0.5)
+        }
+    }
+    
+    private var iPadThreeLayout: some View {
+        ZStack(alignment: .topTrailing) {
+            backCamPreview
+            frontCamPreview
+                .frame(width: previewFrame.width * 0.3, height: previewFrame.height * 0.3)
+                .padding([.top, .trailing], 20)
+        }
     }
     
     var cameraPreview: CameraPreview {
@@ -864,12 +907,9 @@ fileprivate struct RecordingViewPreview: View {
     var frontCamPreview: some View {
         switch cameraPreview {
         case .one:
-            let frontPreviewFrame = CGRect(
-                x: 0,
-                y: 0,
-                width: previewFrame.width / 2.5,
-                height: previewFrame.height / 2.5
-            )
+            let frontPreviewFrame = isIPad ? 
+                CGRect(x: 0, y: 0, width: previewFrame.width * 0.3, height: previewFrame.height) :
+                CGRect(x: 0, y: 0, width: previewFrame.width / 2.5, height: previewFrame.height / 2.5)
             PreviewLayerView(
                 appCameraState.session,
                 with: appCameraState.frontPreviewLayer,
@@ -885,12 +925,9 @@ fileprivate struct RecordingViewPreview: View {
             )
             .clipShape(RoundedRectangle(cornerRadius: 0, style: .continuous))
         case .three:
-            let frontPreviewFrame = CGRect(
-                x: 0,
-                y: 0,
-                width: previewFrame.width * 0.5,
-                height: previewFrame.height * 0.5
-            )
+            let frontPreviewFrame = isIPad ?
+                CGRect(x: 0, y: 0, width: previewFrame.width * 0.3, height: previewFrame.height * 0.3) :
+                CGRect(x: 0, y: 0, width: previewFrame.width * 0.5, height: previewFrame.height * 0.5)
             PreviewLayerView(
                 appCameraState.session,
                 with: appCameraState.frontPreviewLayer,

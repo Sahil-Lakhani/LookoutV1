@@ -8,6 +8,8 @@ struct StealthViewiPhoneScreen: View {
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.verticalSizeClass) var verticalSizeClass
     
+    var isPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
+    
     // Determine orientation based on size classes.
     var isPortrait: Bool {
         horizontalSizeClass == .compact && verticalSizeClass == .regular
@@ -45,35 +47,50 @@ struct StealthViewiPhoneScreen: View {
     
     // MARK: - Grid Layout
     private var columns: [GridItem] {
-        // Four columns for portrait; adapt as needed.
-        Array(repeating: GridItem(.flexible(), spacing: 30), count: 4)
+        if isPad {
+            // Fewer columns with better spacing for iPad
+            return Array(repeating: GridItem(.flexible(), spacing: 30), count: 3)
+        } else {
+            // Four columns for portrait; adapt as needed.
+            return Array(repeating: GridItem(.flexible(), spacing: 30), count: 4)
+        }
     }
     
     // MARK: - Main View
     var body: some View {
         ZStack {
-            // Background Image
-            Image(.backCam)
-                .resizable()
-                .scaledToFill()
-                .ignoresSafeArea()
-            
+            // Background Image - Use different images for iPad and iPhone
+            Group {
+                if isPad {
+                    Image("son_of_a_beach")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                } else {
+                    Image(.backCam)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipped()
+            .ignoresSafeArea()
+
             VStack(spacing: 0) {
                 // Custom Status Bar
                 statusBar
                 
                 // Grid of App Icons
-                LazyVGrid(columns: columns, spacing: 20) {
+                LazyVGrid(columns: columns, spacing: isPad ? 30 : 20) {
                     ForEach(apps) { app in
-                        AppIconButton(app: app) {
+                        AppIconButton(app: app, isPad: isPad) {
                             withAnimation {
                                 overlayMode = app.mode
                             }
                         }
                     }
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 30)
+                .padding(.horizontal, isPad ? 40 : 20)
+                .padding(.top, isPad ? 40 : 30)
                 
                 Spacer()
                 
@@ -92,7 +109,7 @@ struct StealthViewiPhoneScreen: View {
     private var statusBar: some View {
         HStack {
             Text(Date(), formatter: timeFormatter)
-                .font(.system(size: 17, weight: .semibold))
+                .font(.system(size: isPad ? 24 : 17, weight: .semibold))
                 .foregroundColor(.white)
                 .padding(.leading, 12)
             
@@ -103,15 +120,16 @@ struct StealthViewiPhoneScreen: View {
                 Image(systemName: "wifi")
                 Image(systemName: "battery.50")
             }
+            .font(.system(size: isPad ? 20 : 16))
             .foregroundColor(.white)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 6)
+        .padding(.vertical, isPad ? 12 : 6)
     }
     
     // MARK: - Dock Area View
     private var dockArea: some View {
-        HStack(spacing: 20) {
+        HStack(spacing: isPad ? 40 : 20) {
             AppIconButton(
                 app: AppItem(
                     title: "",
@@ -119,20 +137,21 @@ struct StealthViewiPhoneScreen: View {
                     systemImage: true,
                     mode: .none,
                     color: .red
-                )
+                ),
+                isPad: isPad
             ) {
                 overlayMode = .none
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.horizontal, 24)
-        .padding(.vertical, 15)
+        .padding(.horizontal, isPad ? 60 : 24)
+        .padding(.vertical, isPad ? 30 : 15)
         .background(
             .ultraThinMaterial,
-            in: RoundedRectangle(cornerRadius: 35, style: .continuous)
+            in: RoundedRectangle(cornerRadius: isPad ? 55 : 35, style: .continuous)
         )
-        .padding(.horizontal, 16)
-        .padding(.bottom, 25)
+        .padding(.horizontal, isPad ? 40 : 16)
+        .padding(.bottom, isPad ? 50 : 25)
     }
     
     // MARK: - Time Formatter
@@ -146,6 +165,7 @@ struct StealthViewiPhoneScreen: View {
 // MARK: - App Icon Button View
 struct AppIconButton: View {
     let app: StealthViewiPhoneScreen.AppItem
+    let isPad: Bool
     let action: () -> Void
     
     // Determine if there is non-empty text (ignoring whitespace)
@@ -153,27 +173,29 @@ struct AppIconButton: View {
         !app.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     
-    // Return icon height based on the availability of text.
-    // Assuming standard icon height is 65.
-    // If there’s no text, add extra space (for example, 15 points) to fill the gap.
+    // Return icon height based on the availability of text and device type.
     private var iconHeight: CGFloat {
-        hasText ? 65 : 65 + 10
+        if isPad {
+            return hasText ? 90 : 100
+        } else {
+            return hasText ? 65 : 75
+        }
     }
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 5) {
+            VStack(spacing: isPad ? 10 : 5) {
                 // The icon view uses the computed iconHeight.
                 iconView
                     .frame(width: iconHeight, height: iconHeight)
-                    .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 2)
+                    .shadow(color: .black.opacity(0.3), radius: isPad ? 6 : 3, x: 0, y: isPad ? 3 : 2)
                 
-                // Only show text if it’s not empty.
+                // Only show text if it's not empty.
                 if hasText {
                     Text(app.title)
-                        .font(.system(size: 13.25, weight: .medium))
+                        .font(.system(size: isPad ? 18 : 13.25, weight: .medium))
                         .foregroundColor(.white)
-                        .padding(.top, 1.5)
+                        .padding(.top, isPad ? 3 : 1.5)
                 }
             }
         }
@@ -183,27 +205,27 @@ struct AppIconButton: View {
     @ViewBuilder
     private var iconView: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 16, style: .continuous)
+            RoundedRectangle(cornerRadius: isPad ? 22 : 16, style: .continuous)
                 .fill(app.color.gradient)
             
             if app.systemImage {
                 Image(systemName: app.imageName)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .padding(14)
+                    .padding(isPad ? 18 : 14)
                     .foregroundColor(.white)
             } else {
                 Image(app.imageName)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .clipShape(
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        RoundedRectangle(cornerRadius: isPad ? 22 : 16, style: .continuous)
                     )
+                    .padding(isPad ? 8 : 0)
             }
         }
     }
 }
-
 
 @available(iOS 17.0, *)
 #Preview {

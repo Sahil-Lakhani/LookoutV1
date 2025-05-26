@@ -107,7 +107,8 @@ struct WelcomeView: View {
     
     var body: some View {
         ZStack {
-            VStack(spacing: 0) {
+            VStack {
+                // TabView for Intro Screens
                 TabView(selection: $currentPage) {
                     FirstIntroScreen()
                         .tag(0)
@@ -120,55 +121,53 @@ struct WelcomeView: View {
                 }
                 .tabViewStyle(.page)
                 .indexViewStyle(.page(backgroundDisplayMode: .always))
+                // .padding(.vertical, 20)
                 
-                // Bottom section with Next button
-                VStack(spacing: 20) {
-                    Button(action: {
-                        if currentPage < 2 {
-                            withAnimation(.easeInOut(duration: 0.3)) {
-                                currentPage += 1 // Move to the next intro screen
-                            }
-                        } else {
-                            withAnimation(.easeInOut(duration: 0.5)) {
-                                isShowingMainApp = true // Navigate to ContentView
-                            }
-                        }
-                    }) {
-                        Text(currentPage < 2 ? "Next" : "Get Started")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                            .padding(.vertical, 16)
-                            .frame(maxWidth: .infinity)
-                            .background(Color.blue)
-                            .cornerRadius(12)
-                            .padding(.horizontal, 40)
+                // Navigation Button
+                Button(action: {
+                    if currentPage < 2 {
+                        withAnimation(.easeInOut) { currentPage += 1 }
+                    } else {
+                        withAnimation(.easeInOut) { isShowingMainApp = true }
                     }
+                }) {
+                    Text(currentPage < 2 ? "Next" : "Get Started")
+                        .font(.headline)
+                        .fontWeight(.medium)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .shadow(color: .blue.opacity(0.3), radius: 5, x: 0, y: 2)
+                        .padding(.horizontal, 40)
                 }
-                .padding(.bottom, 40)
+                .padding(.bottom, 30)
             }
             
-            // Skip button in top right corner (only for first two screens)
+            // Skip Button
             if currentPage < 2 {
                 VStack {
                     HStack {
                         Spacer()
                         Button(action: {
-                            withAnimation(.easeInOut(duration: 0.5)) {
-                                isShowingMainApp = true
-                            }
+                            withAnimation(.easeInOut) { isShowingMainApp = true }
                         }) {
                             Image(systemName: "xmark")
-                                .font(.caption)
                                 .foregroundColor(.gray)
+                                .padding(10)
+                                .background(Color.white.opacity(0.7))
+                                .clipShape(Circle())
                         }
                         .padding(.trailing, 16)
-                        .padding(.top, 10)
+                        .padding(.top, 50)
                     }
                     Spacer()
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity) // Fill available space
+        .ignoresSafeArea()
         .fullScreenCover(isPresented: $isShowingMainApp) {
             NavigationStack(path: $navigationModel.navPath) {
                 ContentView()
@@ -179,8 +178,8 @@ struct WelcomeView: View {
                     .interactiveDismissDisabled(false)
                     .presentationDragIndicator(.hidden)
             }
-            .environmentObject(appCameraState)
-            .environmentObject(navigationModel)
+                    .environmentObject(appCameraState)
+                    .environmentObject(navigationModel)
             .preferredColorScheme(.dark)
             .onAppear {
                 UserDefaults.standard.register(
@@ -200,31 +199,24 @@ struct WelcomeView: View {
 // MARK: - First Intro Screen
 struct FirstIntroScreen: View {
     var body: some View {
-        VStack(spacing: 20) {
-            // Title Section
-            VStack(alignment: .center, spacing: 8) {
-                Text("Dual Capture, Double the Perspective")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-                
-                Text("Effortlessly record your front and rear views at the same time. Perfect for capturing every angle, seamlessly.")
-                    .font(.body)
-                    .foregroundColor(.gray)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal)
-            }
+        VStack(spacing: 10) {
+            Text("Dual Capture, Double the Perspective")
+                .font(.title)
+                .fontWeight(.semibold)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
             
-            Spacer()
+            Text("Effortlessly record your front and rear views at the same time. Perfect for capturing every angle, seamlessly.")
+                .font(.body)
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 30)
             
-            // Image Section
-            ZStack {
-                Image("firstImage")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxWidth: 300, maxHeight: 400)
-            }
+            Image("firstImage")
+                .resizable()
+                .scaledToFit()
+                .frame(maxWidth: 300, maxHeight: 450)
+                .padding(.bottom, 30)
         }
     }
 }
@@ -232,12 +224,26 @@ struct FirstIntroScreen: View {
 // MARK: - Second Intro Screen
 struct SecondIntroScreen: View {
     var body: some View {
-        VStack {
-            // Add your custom UI here for screen 2
-            Text("Second Screen")
+        VStack(spacing: 20) {
+            Text("Capture Every Moment")
+                .font(.title)
+                .fontWeight(.semibold)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
+            
+            Text("Your memories, captured in stunning detail with advanced dual camera support.")
+                .font(.body)
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 30)
+            
+            Spacer()
+            
             Image("intro2")
                 .resizable()
                 .scaledToFit()
+                .frame(maxWidth: 250, maxHeight: 350)
+                .padding(.bottom, 40)
         }
     }
 }
@@ -245,12 +251,26 @@ struct SecondIntroScreen: View {
 // MARK: - Third Intro Screen
 struct ThirdIntroScreen: View {
     var body: some View {
-        VStack {
-            // Add your custom UI here for screen 3
-            Text("Third Screen")
+        VStack(spacing: 20) {
+            Text("Ready to Get Started?")
+                .font(.title)
+                .fontWeight(.semibold)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 20)
+            
+            Text("Let’s dive in and explore the full potential of dual camera technology.")
+                .font(.body)
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 30)
+            
+            Spacer()
+            
             Image("intro3")
                 .resizable()
                 .scaledToFit()
+                .frame(maxWidth: 250, maxHeight: 350)
+                .padding(.bottom, 40)
         }
     }
 }
