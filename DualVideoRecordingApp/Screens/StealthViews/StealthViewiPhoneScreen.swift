@@ -215,6 +215,7 @@ struct AppIconButton: View {
 
     @ViewBuilder
     private var iconView: some View {
+        if app.systemImage {
         ZStack {
             RoundedRectangle(cornerRadius: isPad ? 22 : 16, style: .continuous)
                 .fill(app.color.gradient)
