@@ -1,22 +1,20 @@
 import SwiftUI
 
 struct StealthViewiPhoneScreen: View {
-    // Binding for overlay mode which drives parent view state.
     @Binding var overlayMode: RecordingView.OverlayMode
-    
+
     @EnvironmentObject var navigationModel: NavigationModel
     @Environment(\.horizontalSizeClass) var horizontalSizeClass
     @Environment(\.verticalSizeClass) var verticalSizeClass
-    
+
     var isPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
-    
-    // Determine orientation based on size classes.
+
     var isPortrait: Bool {
         horizontalSizeClass == .compact && verticalSizeClass == .regular
     }
-    
+
     @State private var isDragging = false
-    
+
     // MARK: - App Data Model
     struct AppItem: Identifiable {
         let id = UUID()
@@ -26,76 +24,27 @@ struct StealthViewiPhoneScreen: View {
         let mode: RecordingView.OverlayMode
         let color: Color
     }
-    
+
     // MARK: - Dummy Apps
     let apps: [AppItem] = [
-        AppItem(
-            title: "Maps",
-            imageName: "maps",
-            systemImage: false,
-            mode: .maps,
-            color: .blue
-//            color: .black.opacity(0/100)
-        ),
-        AppItem(
-            title: "Overlay",
-            imageName: "iphone",
-            systemImage: true,
-            mode: .blackout,
-            color: .orange
-        )
+        AppItem(title: "Maps", imageName: "maps", systemImage: false, mode: .maps, color: .blue),
+        AppItem(title: "Overlay", imageName: "iphone", systemImage: true, mode: .blackout, color: .orange)
     ]
-    
+
     // MARK: - Grid Layout
     private var columns: [GridItem] {
-        if isPad {
-            // Fewer columns with better spacing for iPad
-            return Array(repeating: GridItem(.flexible(), spacing: 40), count: 4)
-        } else {
-            // Four columns for portrait; adapt as needed.
-            return Array(repeating: GridItem(.flexible(), spacing: 30), count: 4)
-        }
+        Array(repeating: GridItem(.flexible(), spacing: isPad ? 40 : 30), count: isPad ? 5 : 4)
     }
-    
+
     // MARK: - Main View
     var body: some View {
         ZStack {
-            // Background Image - Use different images for iPad and iPhone
-            Group {
-                if isPad {
-                    Image("ipad")
-                        .resizable()
-//                        .aspectRatio(contentMode: .fit)
-                } else {
-                    Image(.backCam)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .clipped()
-            .ignoresSafeArea()
+            backgroundView
 
             VStack(spacing: 0) {
-                // Custom Status Bar
                 statusBar
-                
-                // Grid of App Icons
-                LazyVGrid(columns: columns, spacing: isPad ? 8 : 20) {
-                    ForEach(apps) { app in
-                        AppIconButton(app: app, isPad: isPad) {
-                            withAnimation {
-                                overlayMode = app.mode
-                            }
-                        }
-                    }
-                }
-                .padding(.horizontal, isPad ? 120 : 20)
-                .padding(.top, isPad ? 32 : 40)
-                
+                appGrid
                 Spacer()
-                
-                // Dock Area with a single Back button
                 dockArea
             }
             .gesture(
@@ -105,19 +54,35 @@ struct StealthViewiPhoneScreen: View {
             )
         }
     }
-    
+
+    // MARK: - Background View
+    private var backgroundView: some View {
+        Group {
+            if isPad {
+                Image("ipad")
+                    .resizable()
+            } else {
+                Image(.backCam)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .clipped()
+        .ignoresSafeArea()
+    }
+
     // MARK: - Status Bar View
     private var statusBar: some View {
         HStack {
             Text(Date(), formatter: timeFormatter)
-                .font(.system(size: isPad ? 24 : 17, weight: .semibold))
+                .font(.system(size: isPad ? 14 : 17, weight: .semibold))
                 .foregroundColor(.white)
                 .padding(.leading, 12)
-            
+
             Spacer()
-            
+
             HStack(spacing: 8) {
-                Image(systemName: "cellularbars")
                 Image(systemName: "wifi")
                 Image(systemName: "battery.50")
             }
@@ -127,11 +92,58 @@ struct StealthViewiPhoneScreen: View {
         .padding(.horizontal, 16)
         .padding(.vertical, isPad ? 12 : 6)
     }
+
+    // MARK: - App Grid
+    private var appGrid: some View {
+        LazyVGrid(columns: columns, spacing: isPad ? 10 : 20) {
+            ForEach(apps) { app in
+                appButton(for: app)
+            }
+        }
+        .padding(.horizontal, isPad ? 100 : 20)
+        .padding(.top, isPad ? 55 : 40)
+    }
+
+    private func appButton(for app: AppItem) -> some View {
+        AppIconButton(app: app, isPad: isPad) {
+            withAnimation {
+                overlayMode = app.mode
+            }
+        }
+    }
+
+    // MARK: - Dock Button View
+    struct DockButton: View {
+        let app: StealthViewiPhoneScreen.AppItem
+        let size: CGFloat
+        let action: () -> Void
+
+        var body: some View {
+            Button(action: action) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: size * 0.2, style: .continuous)
+                        .fill(app.color)
+                        .frame(width: size, height: size)
+
+                    if app.systemImage {
+                        Image(systemName: app.imageName)
+                            .resizable()
+                            .scaledToFit()
+                            .padding(size * 0.2)
+                            .foregroundColor(.white)
+                    }
+                }
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+    }
+
+
     
     // MARK: - Dock Area View
     private var dockArea: some View {
         HStack(spacing: isPad ? 60 : 20) {
-            AppIconButton(
+            DockButton(
                 app: AppItem(
                     title: "",
                     imageName: "xmark.circle.fill",
@@ -139,22 +151,24 @@ struct StealthViewiPhoneScreen: View {
                     mode: .none,
                     color: .red
                 ),
-                isPad: isPad
+                size: isPad ? 74 : 36 // Adjust size for iPad and iPhone
             ) {
                 overlayMode = .none
             }
         }
-        .frame(maxWidth: isPad ? 600 : .infinity, maxHeight: isPad ? 80 : 65)
+        .frame(maxWidth: isPad ? 405 : .infinity, maxHeight: isPad ? 75 : 65)
         .padding(.horizontal, isPad ? 50 : 24)
-        .padding(.vertical, isPad ? 30 : 15)
+        .padding(.vertical, isPad ? 10 : 15)
         .background(
-                RoundedRectangle(cornerRadius: isPad ? 35 : 35, style: .continuous)
-                    .fill(.ultraThinMaterial) // Use translucent material
-                    .opacity(isPad ? 0.7 : 0.9) // Adjust opacity for translucency
-            )        .padding(.horizontal, isPad ? 30 : 16)
-        .padding(.bottom, isPad ? 40 : 25)
+            RoundedRectangle(cornerRadius: 35, style: .continuous)
+                .fill(.ultraThinMaterial)
+                .opacity(isPad ? 0.7 : 0.9)
+        )
+        .padding(.horizontal, isPad ? 30 : 16)
+        .padding(.bottom, isPad ? 0 : 25)
     }
-    
+
+
     // MARK: - Time Formatter
     private var timeFormatter: DateFormatter {
         let formatter = DateFormatter()
@@ -168,13 +182,11 @@ struct AppIconButton: View {
     let app: StealthViewiPhoneScreen.AppItem
     let isPad: Bool
     let action: () -> Void
-    
-    // Determine if there is non-empty text (ignoring whitespace)
+
     private var hasText: Bool {
         !app.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
-    
-    // Return icon height based on the availability of text and device type.
+
     private var iconHeight: CGFloat {
         if isPad {
             return hasText ? 72 : 100
@@ -182,16 +194,14 @@ struct AppIconButton: View {
             return hasText ? 65 : 75
         }
     }
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: isPad ? 10 : 5) {
-                // The icon view uses the computed iconHeight.
                 iconView
                     .frame(width: iconHeight, height: iconHeight)
                     .shadow(color: .black.opacity(0.3), radius: isPad ? 6 : 3, x: 0, y: isPad ? 3 : 2)
-                
-                // Only show text if it's not empty.
+
                 if hasText {
                     Text(app.title)
                         .font(.system(size: isPad ? 18 : 13.25, weight: .medium))
@@ -202,13 +212,13 @@ struct AppIconButton: View {
         }
         .buttonStyle(PlainButtonStyle())
     }
-    
+
     @ViewBuilder
     private var iconView: some View {
         ZStack {
             RoundedRectangle(cornerRadius: isPad ? 22 : 16, style: .continuous)
                 .fill(app.color.gradient)
-            
+
             if app.systemImage {
                 Image(systemName: app.imageName)
                     .resizable()
@@ -225,22 +235,5 @@ struct AppIconButton: View {
                     .padding(isPad ? 8 : 0)
             }
         }
-    }
-}
-
-@available(iOS 17.0, *)
-#Preview {
-    @Previewable @State var overlayMode: RecordingView.OverlayMode = .options
-    
-    ZStack {
-        Image(.backCam)
-            .resizable()
-            .scaledToFill()
-        
-        StealthViewiPhoneScreen(overlayMode: $overlayMode)
-            .environmentObject(NavigationModel())
-            .onChange(of: overlayMode) { newValue in
-                print("Overlay mode changed to \(newValue)")
-            }
     }
 }
