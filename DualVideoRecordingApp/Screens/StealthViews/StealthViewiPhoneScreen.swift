@@ -101,7 +101,7 @@ struct StealthViewiPhoneScreen: View {
             }
         }
         .padding(.horizontal, isPad ? 100 : 20)
-        .padding(.top, isPad ? 55 : 40)
+        .padding(.top, isPad ? 65 : 40)
     }
 
     private func appButton(for app: AppItem) -> some View {
@@ -151,7 +151,7 @@ struct StealthViewiPhoneScreen: View {
                     mode: .none,
                     color: .red
                 ),
-                size: isPad ? 74 : 36 // Adjust size for iPad and iPhone
+                size: isPad ? 64 : 56 // Adjust size for iPad and iPhone
             ) {
                 overlayMode = .none
             }
@@ -189,7 +189,7 @@ struct AppIconButton: View {
 
     private var iconHeight: CGFloat {
         if isPad {
-            return hasText ? 72 : 100
+            return hasText ? 62 : 100
         } else {
             return hasText ? 65 : 75
         }
@@ -204,9 +204,9 @@ struct AppIconButton: View {
 
                 if hasText {
                     Text(app.title)
-                        .font(.system(size: isPad ? 18 : 13.25, weight: .medium))
+                        .font(.system(size: isPad ? 12 : 13.25, weight: .medium))
                         .foregroundColor(.white)
-                        .padding(.top, isPad ? 3 : 1.5)
+                        .padding(.top, isPad ? 0 : 1.5)
                 }
             }
         }
@@ -217,7 +217,7 @@ struct AppIconButton: View {
     private var iconView: some View {
         if app.systemImage {
         ZStack {
-            RoundedRectangle(cornerRadius: isPad ? 22 : 16, style: .continuous)
+                RoundedRectangle(cornerRadius: isPad ? 15 : 16, style: .continuous)
                 .fill(app.color.gradient)
 
                 
@@ -235,7 +235,7 @@ struct AppIconButton: View {
                     .clipShape(
                         RoundedRectangle(cornerRadius: isPad ? 2 : 16, style: .continuous)
                     )
-                    .padding(isPad ? 2 : 0)
+                    .padding(isPad ? 0 : 0)
             }
         }
     }
