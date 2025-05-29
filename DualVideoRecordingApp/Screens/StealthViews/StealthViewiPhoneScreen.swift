@@ -86,7 +86,7 @@ struct StealthViewiPhoneScreen: View {
                 Image(systemName: "wifi")
                 Image(systemName: "battery.50")
             }
-            .font(.system(size: isPad ? 20 : 16))
+            .font(.system(size: isPad ? 12 : 16))
             .foregroundColor(.white)
         }
         .padding(.horizontal, 16)
@@ -219,21 +219,23 @@ struct AppIconButton: View {
             RoundedRectangle(cornerRadius: isPad ? 22 : 16, style: .continuous)
                 .fill(app.color.gradient)
 
-            if app.systemImage {
+                
                 Image(systemName: app.imageName)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .padding(isPad ? 18 : 14)
                     .foregroundColor(.white)
-            } else {
+            }
+            }
+            else {
                 Image(app.imageName)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .clipShape(
-                        RoundedRectangle(cornerRadius: isPad ? 22 : 16, style: .continuous)
+                        RoundedRectangle(cornerRadius: isPad ? 2 : 16, style: .continuous)
                     )
-                    .padding(isPad ? 8 : 0)
+                    .padding(isPad ? 2 : 0)
             }
         }
     }
-}
+
