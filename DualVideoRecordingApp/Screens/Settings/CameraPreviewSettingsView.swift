@@ -12,7 +12,9 @@ struct CameraPreviewSettingsView: View {
     
     @State private var tabSelection: CameraPreview = .one
     
-    let height: CGFloat = 550
+    var height: CGFloat {
+        UIDevice.current.userInterfaceIdiom == .pad ? 425 : 550
+    }
     var cornerRadius: CGFloat { height / 58 }
     
     var body: some View {

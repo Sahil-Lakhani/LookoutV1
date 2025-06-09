@@ -848,29 +848,27 @@ fileprivate struct RecordingViewPreview: View {
     }
     
     private var iPadOneLayout: some View {
-        HStack(spacing: 0) {
             backCamPreview
-                .frame(width: previewFrame.width * 0.7)
+            .overlay(alignment: .topTrailing) {
             frontCamPreview
-                .frame(width: previewFrame.width * 0.3)
+                    .padding([.top, .trailing], 15)
         }
     }
     
     private var iPadTwoLayout: some View {
-        HStack(spacing: 0) {
+        VStack(alignment: .center, spacing: 2.5) {
             backCamPreview
-                .frame(width: previewFrame.width * 0.5)
             frontCamPreview
-                .frame(width: previewFrame.width * 0.5)
         }
     }
     
     private var iPadThreeLayout: some View {
-        ZStack(alignment: .topTrailing) {
+        VStack {
             backCamPreview
+                .padding([.top, .trailing], 75)
+        }
+        .overlay(alignment: .topTrailing) {
             frontCamPreview
-                .frame(width: previewFrame.width * 0.3, height: previewFrame.height * 0.3)
-                .padding([.top, .trailing], 20)
         }
     }
     
@@ -908,7 +906,7 @@ fileprivate struct RecordingViewPreview: View {
         switch cameraPreview {
         case .one:
             let frontPreviewFrame = isIPad ? 
-                CGRect(x: 0, y: 0, width: previewFrame.width * 0.3, height: previewFrame.height) :
+                CGRect(x: 0, y: 0, width: previewFrame.width * 0.35, height: previewFrame.height * 0.45) :
                 CGRect(x: 0, y: 0, width: previewFrame.width / 2.5, height: previewFrame.height / 2.5)
             PreviewLayerView(
                 appCameraState.session,
