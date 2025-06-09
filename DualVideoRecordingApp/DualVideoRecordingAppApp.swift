@@ -6,12 +6,19 @@
 //
 
 import SwiftUI
+import WatchConnectivity
 
 @main
 struct DualVideoRecordingAppApp: App {
-    @StateObject var navigationModel = NavigationModel()
-    @StateObject var appCameraState = AppCameraState()
+    @StateObject private var navigationModel = NavigationModel()
+    @StateObject private var appCameraState = AppCameraState()
+    @StateObject private var connectivityManager = ConnectivityManager.shared
     @AppStorage("hasSeenWelcome") private var hasSeenWelcome: Bool = false
+    
+    init() {
+        // Initialize the shared connectivity manager
+        _ = ConnectivityManager.shared
+    }
     
     var body: some Scene {
         WindowGroup {
@@ -19,6 +26,7 @@ struct DualVideoRecordingAppApp: App {
                 WelcomeView()
                     .environmentObject(navigationModel)
                     .environmentObject(appCameraState)
+                    .environmentObject(connectivityManager)
                     .onDisappear {
                         hasSeenWelcome = true
                     }
@@ -34,8 +42,15 @@ struct DualVideoRecordingAppApp: App {
                 }
                 .environmentObject(appCameraState)
                 .environmentObject(navigationModel)
+                .environmentObject(connectivityManager)
                 .preferredColorScheme(.dark)
-                .onAppear {
+                .task {
+                    // Initialize camera and connect to connectivity manager
+                    if await appCameraState.checkAndRequestAccess() {
+                        appCameraState.startSession()
+                        connectivityManager.setAppCameraState(appCameraState)
+                    }
+                    
                     UserDefaults.standard.register(
                         defaults: [
                             Constants.frameRateKey.description: 30,
