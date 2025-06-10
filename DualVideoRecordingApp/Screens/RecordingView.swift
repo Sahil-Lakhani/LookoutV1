@@ -54,6 +54,7 @@ struct RecordingView: View {
                         .opacity(vm.isRecording ? 1 : 0)
                 }
                 .padding(.all, 18)
+                .opacity(vm.currentOverlayMode == .blackout ? 0 : 1)
             }
             
             bottomControls
@@ -80,8 +81,35 @@ struct RecordingView: View {
             self.orientation = UIDevice.current.orientation
             UIApplication.shared.isIdleTimerDisabled = true
             speedTracker.startLocationTracking()
+            
+            // Add notification observers for Watch commands
+            NotificationCenter.default.addObserver(
+                forName: .startRecording,
+                object: nil,
+                queue: .main
+            ) { _ in
+                // Only start recording if camera is active and not already recording
+                if appCameraState.isCameraActive && !vm.isRecording {
+                    vm.toggleRecording(appCameraState)
+                }
+            }
+            
+            NotificationCenter.default.addObserver(
+                forName: .stopRecording,
+                object: nil,
+                queue: .main
+            ) { _ in
+                // Only stop recording if currently recording
+                if vm.isRecording {
+                    vm.toggleRecording(appCameraState)
+                }
+            }
         }
-        .onDisappear(perform: cleanup)
+        .onDisappear {
+            // Remove notification observers
+            NotificationCenter.default.removeObserver(self)
+            cleanup()
+        }
         .onScenePhaseChange { scenePhase in
             switch scenePhase {
             case .active:
@@ -152,11 +180,11 @@ struct RecordingView: View {
 //            }
 //        }
         .overlay(alignment: .bottom) {
-            if vm.isRecording {
+            if vm.isRecording && vm.currentOverlayMode != .none {
                 // You can adjust the alignment as needed; here, it's centered.
                 RecordingIndicatorView()
                     .padding(.bottom, 100) // adjust the padding to position it appropriately
-//                    .padding(.leading, 15)
+                    .opacity(vm.currentOverlayMode == .blackout ? 0 : 1)
             }
         }
     }
@@ -924,7 +952,7 @@ fileprivate struct RecordingViewPreview: View {
             .clipShape(RoundedRectangle(cornerRadius: 0, style: .continuous))
         case .three:
             let frontPreviewFrame = isIPad ?
-                CGRect(x: 0, y: 0, width: previewFrame.width * 0.3, height: previewFrame.height * 0.3) :
+                CGRect(x: 0, y: 0, width: previewFrame.width * 0.3, height: previewFrame.height * 0.35) :
                 CGRect(x: 0, y: 0, width: previewFrame.width * 0.5, height: previewFrame.height * 0.5)
             PreviewLayerView(
                 appCameraState.session,

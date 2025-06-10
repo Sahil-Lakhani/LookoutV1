@@ -21,12 +21,12 @@ struct BlackOutModeView: View {
             Button {
                 self.overlayMode = .none
             } label: {
-                Image(systemName: "xmark.circle.fill")
+                Image(systemName: "xmark.circle")
                     .resizable()
                     .scaledToFit()
                     .frame(height: 100)
             }
-            .tint(.white)
+            .tint(.gray)
             .opacity(opacity)
             .labelStyle(.iconOnly)
 //            .padding(.bottom, 60)
