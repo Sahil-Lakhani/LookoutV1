@@ -104,6 +104,15 @@ struct RecordingView: View {
                     vm.toggleRecording(appCameraState)
                 }
             }
+            
+            NotificationCenter.default.addObserver(
+                forName: .captureScreenshot,
+                object: nil,
+                queue: .main
+            ) { _ in
+                // Capture screenshot when requested from Watch
+                captureScreen()
+            }
         }
         .onDisappear {
             // Remove notification observers
@@ -802,6 +811,7 @@ fileprivate struct IconButton: View {
         Button {
             withAnimation {
                 vm.currentOverlayMode = overlayMode
+                print("Current Overlay Mode: \(vm.currentOverlayMode)")
             }
         } label: {
             if isSystemImage {
@@ -876,11 +886,11 @@ fileprivate struct RecordingViewPreview: View {
     }
     
     private var iPadOneLayout: some View {
-            backCamPreview
+        backCamPreview
             .overlay(alignment: .topTrailing) {
-            frontCamPreview
+                frontCamPreview
                     .padding([.top, .trailing], 15)
-        }
+            }
     }
     
     private var iPadTwoLayout: some View {

@@ -306,10 +306,17 @@ final class AppCameraState: ObservableObject {
         if session.canAddOutput(backVideoDataOutput.output) {
             session.addOutput(backVideoDataOutput.output)
             backVideoDataOutput.setDelegate()
+            backVideoDataOutput.output.videoSettings = [
+                kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)
+            ]
         }
+        
         if AVCaptureMultiCamSession.isMultiCamSupported && session.canAddOutput(frontVideoDataOutput.output) {
             session.addOutput(frontVideoDataOutput.output)
             frontVideoDataOutput.setDelegate()
+            frontVideoDataOutput.output.videoSettings = [
+                kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)
+            ]
         }
         
         // MARK: - Set up fro video stabilization

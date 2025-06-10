@@ -28,20 +28,27 @@ class ConnectivityManager: NSObject, ObservableObject {
     
     func sendMessage(_ action: String, completion: ((Error?) -> Void)? = nil) {
         guard WCSession.default.activationState == .activated else {
-            completion?(NSError(domain: "ConnectivityManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "WCSession is not activated"]))
+            let error = NSError(domain: "ConnectivityManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "WCSession is not activated"])
+            logger.error("Failed to send message: WCSession is not activated")
+            completion?(error)
             return
         }
         
         #if os(iOS)
         guard WCSession.default.isWatchAppInstalled else {
-            completion?(NSError(domain: "ConnectivityManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Watch app is not installed"]))
+            let error = NSError(domain: "ConnectivityManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "Watch app is not installed"])
+            logger.error("Failed to send message: Watch app is not installed")
+            completion?(error)
             return
         }
         #endif
         
+        logger.info("Sending message to Watch: \(action)")
         WCSession.default.sendMessage(["action": action], replyHandler: { reply in
+            self.logger.info("Message sent successfully. Reply: \(reply)")
             completion?(nil)
         }, errorHandler: { error in
+            self.logger.error("Error sending message: \(error.localizedDescription)")
             completion?(error)
         })
     }
@@ -54,7 +61,7 @@ extension ConnectivityManager: WCSessionDelegate {
             if let error = error {
                 self.logger.error("Session activation failed with error: \(error.localizedDescription)")
             } else {
-                self.logger.info("Session activated successfully")
+                self.logger.info("Session activated successfully. Reachable: \(self.isReachable)")
             }
         }
     }
@@ -71,7 +78,6 @@ extension ConnectivityManager: WCSessionDelegate {
             self.isReachable = false
             self.logger.info("Session deactivated")
         }
-        // Reactivate session if needed
         WCSession.default.activate()
     }
     
@@ -81,31 +87,38 @@ extension ConnectivityManager: WCSessionDelegate {
     
     func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
         handleReceivedMessage(message)
-        // Always send a reply to acknowledge receipt
+        logger.info("Sending reply to Watch")
         replyHandler(["status": "received"])
     }
     
     private func handleReceivedMessage(_ message: [String : Any]) {
         DispatchQueue.main.async {
             if let action = message["action"] as? String {
-                self.logger.info("Received action: \(action)")
+                self.logger.info("Received action from Watch: \(action)")
                 
                 switch action {
                 case "testConnection":
                     self.lastReceivedMessage = "Watch button clicked at \(Date().formatted())"
+                    self.logger.info("Test connection received")
                 case "startRecording":
-                    // Post notification to start recording
                     NotificationCenter.default.post(name: .startRecording, object: nil)
                     self.lastReceivedMessage = "Recording started at \(Date().formatted())"
+                    self.logger.info("Start recording command received")
                 case "stopRecording":
-                    // Post notification to stop recording
                     NotificationCenter.default.post(name: .stopRecording, object: nil)
                     self.lastReceivedMessage = "Recording stopped at \(Date().formatted())"
+                    self.logger.info("Stop recording command received")
+                case "captureScreenshot":
+                    NotificationCenter.default.post(name: .captureScreenshot, object: nil)
+                    self.lastReceivedMessage = "Screenshot captured at \(Date().formatted())"
+                    self.logger.info("Screenshot command received")
                 default:
                     self.lastReceivedMessage = "Unknown action received: \(action)"
-                    self.logger.warning("Unknown action received: \(action)")
+                    self.logger.warning("Unknown action received from Watch: \(action)")
                 }
-                print("Received message: \(self.lastReceivedMessage)")
+                self.logger.info("Message processed: \(self.lastReceivedMessage)")
+            } else {
+                self.logger.warning("Received message without action: \(message)")
             }
         }
     }
@@ -120,9 +133,9 @@ extension ConnectivityManager: WCSessionDelegate {
     #endif
 }
 
-// Add notification names
 extension Notification.Name {
     static let startRecording = Notification.Name("startRecording")
     static let stopRecording = Notification.Name("stopRecording")
+    static let captureScreenshot = Notification.Name("captureScreenshot")
 }
 
