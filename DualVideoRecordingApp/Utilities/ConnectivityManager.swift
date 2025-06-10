@@ -14,9 +14,7 @@ class ConnectivityManager: NSObject, ObservableObject {
     static let shared = ConnectivityManager()
     @Published var isReachable = false
     @Published var lastReceivedMessage: String = ""
-    @Published var isRecording = false
     
-    private var appCameraState: AppCameraState?
     private let logger = Logger(subsystem: "com.kidastudios.DualVideoRecordingApp", category: "ConnectivityManager")
     
     private override init() {
@@ -25,17 +23,6 @@ class ConnectivityManager: NSObject, ObservableObject {
             let session = WCSession.default
             session.delegate = self
             session.activate()
-        }
-    }
-    
-    func setAppCameraState(_ state: AppCameraState) {
-        logger.info("Setting AppCameraState")
-        self.appCameraState = state
-        // Verify camera state is properly set
-        if let cameraState = self.appCameraState {
-            logger.info("Camera state successfully set. Camera active: \(cameraState.isCameraActive)")
-        } else {
-            logger.error("Failed to set camera state")
         }
     }
     
@@ -107,30 +94,13 @@ extension ConnectivityManager: WCSessionDelegate {
                 case "testConnection":
                     self.lastReceivedMessage = "Watch button clicked at \(Date().formatted())"
                 case "startRecording":
-                    if let cameraState = self.appCameraState {
-                        if cameraState.isCameraActive {
-                            cameraState.startRecording()
-                            self.isRecording = true
-                            self.lastReceivedMessage = "Recording started at \(Date().formatted())"
-                            self.logger.info("Recording started successfully")
-                        } else {
-                            self.lastReceivedMessage = "Error: Camera is not active"
-                            self.logger.error("Camera is not active")
-                        }
-                    } else {
-                        self.lastReceivedMessage = "Error: Camera state not initialized"
-                        self.logger.error("Camera state is nil")
-                    }
+                    // Post notification to start recording
+                    NotificationCenter.default.post(name: .startRecording, object: nil)
+                    self.lastReceivedMessage = "Recording started at \(Date().formatted())"
                 case "stopRecording":
-                    if let cameraState = self.appCameraState {
-                        cameraState.stopRecording()
-                        self.isRecording = false
-                        self.lastReceivedMessage = "Recording stopped at \(Date().formatted())"
-                        self.logger.info("Recording stopped successfully")
-                    } else {
-                        self.lastReceivedMessage = "Error: Camera state not initialized"
-                        self.logger.error("Camera state is nil")
-                    }
+                    // Post notification to stop recording
+                    NotificationCenter.default.post(name: .stopRecording, object: nil)
+                    self.lastReceivedMessage = "Recording stopped at \(Date().formatted())"
                 default:
                     self.lastReceivedMessage = "Unknown action received: \(action)"
                     self.logger.warning("Unknown action received: \(action)")
@@ -148,5 +118,11 @@ extension ConnectivityManager: WCSessionDelegate {
         }
     }
     #endif
+}
+
+// Add notification names
+extension Notification.Name {
+    static let startRecording = Notification.Name("startRecording")
+    static let stopRecording = Notification.Name("stopRecording")
 }
 

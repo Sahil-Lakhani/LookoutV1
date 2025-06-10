@@ -48,7 +48,6 @@ struct DualVideoRecordingAppApp: App {
                     // Initialize camera and connect to connectivity manager
                     if await appCameraState.checkAndRequestAccess() {
                         appCameraState.startSession()
-                        connectivityManager.setAppCameraState(appCameraState)
                     }
                     
                     UserDefaults.standard.register(
