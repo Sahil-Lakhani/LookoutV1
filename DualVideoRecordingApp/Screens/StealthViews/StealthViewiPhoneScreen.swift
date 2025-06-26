@@ -151,7 +151,7 @@ struct StealthViewiPhoneScreen: View {
                     mode: .none,
                     color: .red
                 ),
-                size: isPad ? 64 : 56 // Adjust size for iPad and iPhone
+                size: isPad ? 64 : 65 // Adjust size for iPad and iPhone
             ) {
                 overlayMode = .none
             }
