@@ -124,11 +124,13 @@ struct RecordingView: View {
         .onScenePhaseChange { scenePhase in
             switch scenePhase {
             case .active:
+                ConnectivityManager.shared.sendMessage("appActive")
                 UIApplication.shared.isIdleTimerDisabled = true
                 let isRecording = appCameraState.isRecording
                 self.vm.isRecording = isRecording
                 self.vm.recordingDuration = isRecording ? appCameraState.recordedDuration : 0
             default:
+                ConnectivityManager.shared.sendMessage("appInactive")
                 if vm.isRecording {
                     ConnectivityManager.shared.sendMessage("stopRecording")
                 }
@@ -522,12 +524,13 @@ extension RecordingView {
             withAnimation {
                 isRecording.toggle()
             }
+            ConnectivityManager.shared.sendMessage(isRecording ? "startRecording" : "stopRecording")
         #else
             if appCameraState.isRecording {
                 appCameraState.stopRecording()
                 withAnimation { isRecording = false }
+                ConnectivityManager.shared.sendMessage("stopRecording")
 
-                // ✅ Fetch thumbnail after recording ends
                 Task {
                     do {
                         let uiImage = try await fetchLatestThumbnail()
@@ -542,6 +545,7 @@ extension RecordingView {
             } else {
                 appCameraState.startRecording()
                 withAnimation { isRecording = true }
+                ConnectivityManager.shared.sendMessage("startRecording")
             }
         #endif
             if let timerHandler {

@@ -25,6 +25,7 @@ class WatchConnectivityManager: NSObject, ObservableObject {
     @Published var isReachable = false
     @Published var lastReceivedAction: String?
     @Published var lastError: String?
+    @Published var isPhoneAppActive: Bool = false
     
     private let logger = Logger(subsystem: "com.kidastudios.lookout.watch", category: "WatchConnectivityManager")
     
@@ -58,6 +59,11 @@ extension WatchConnectivityManager: WCSessionDelegate {
         DispatchQueue.main.async {
             if let action = message["action"] as? String {
                 self.lastReceivedAction = action
+                if action == "appActive" {
+                    self.isPhoneAppActive = true
+                } else if action == "appInactive" {
+                    self.isPhoneAppActive = false
+                }
                 self.logger.info("Received action from iPhone: \(action)")
             } else {
                 self.logger.warning("Received message without action: \(message)")
@@ -76,6 +82,11 @@ extension WatchConnectivityManager: WCSessionDelegate {
         DispatchQueue.main.async {
             if let action = message["action"] as? String {
                 self.lastReceivedAction = action
+                if action == "appActive" {
+                    self.isPhoneAppActive = true
+                } else if action == "appInactive" {
+                    self.isPhoneAppActive = false
+                }
                 self.logger.info("Received action with reply handler: \(action)")
             } else {
                 self.logger.warning("Received message without action (with reply): \(message)")
