@@ -16,6 +16,8 @@ struct WatchRecordings: View {
     
     @Environment(\.editMode) private var editMode
     
+    @State private var showBulkDeleteConfirmation = false
+    
     var isEditing: Bool {
         editMode?.wrappedValue.isEditing ?? false
     }
@@ -84,8 +86,25 @@ struct WatchRecordings: View {
         } message: { (m: any MediaProtocol) in
             Text(m.displayName)
         }
+        .confirmationDialog(
+            "Delete Selected Items",
+            isPresented: $showBulkDeleteConfirmation
+        ) {
+            Button("Delete All Selected", systemImage: "trash.fill", role: .destructive) {
+                performBulkDelete()
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            let selectedCount = vm.selectedMovies.count + vm.selectedPhotos.count
+            Text("Are you sure you want to delete \(selectedCount) selected item\(selectedCount == 1 ? "" : "s")? This action cannot be undone.")
+        }
         .toolbar {
             ToolbarItem(placement: .principal, content: mediaTypeSwitcher)
+            ToolbarItem(placement: .automatic) {
+                if isEditing {
+                    selectAllButton()
+                }
+            }
             ToolbarItem(placement: .automatic) {
                 if isEditing {
                     deleteSelectionButton()
@@ -298,20 +317,65 @@ struct WatchRecordings: View {
     }
     
     func deleteSelectionButton() -> some View {
-        Button("Delete Select", systemImage: "trash.fill", role: .destructive) {
-            for movieID in vm.selectedMovies {
-                guard let movie = vm.groupedMovies.values.flatMap(\.self).first(where: { $0.id == movieID }) else { continue }
-                vm.deleteMedia(movie)
+        let hasSelectedItems = !vm.selectedMovies.isEmpty || !vm.selectedPhotos.isEmpty
+        
+        return Button("Delete Select", systemImage: "trash.fill", role: .destructive) {
+            showBulkDeleteConfirmation = true
+        }
+        .disabled(!hasSelectedItems)
+    }
+    
+    func performBulkDelete() {
+        let selectedMoviesToDelete = vm.selectedMovies
+        let selectedPhotosToDelete = vm.selectedPhotos
+        
+        for movieID in selectedMoviesToDelete {
+            guard let movie = vm.groupedMovies.values.flatMap(\.self).first(where: { $0.id == movieID }) else { continue }
+            vm.deleteMedia(movie)
+        }
+        vm.selectedMovies.removeAll()
+        
+        for photoID in selectedPhotosToDelete {
+            guard let photo = vm.groupedPhotos.values.flatMap(\.self).first(where: { $0.id == photoID }) else { continue }
+            vm.deleteMedia(photo)
+        }
+        vm.selectedPhotos.removeAll()
+        
+        self.editMode?.wrappedValue = .inactive
+        
+        // Show success toast
+        let deletedCount = selectedMoviesToDelete.count + selectedPhotosToDelete.count
+        if deletedCount > 0 {
+            let msg = AttributedString("Deleted \(deletedCount) item\(deletedCount == 1 ? "" : "s") successfully")
+            self.navigationModel.showToast(
+                withText: msg,
+                icon: .success,
+                shouldRemoveAfter: 1.5
+            )
+        }
+    }
+    
+    // MARK: - Select All / Deselect All Button
+    @ViewBuilder
+    func selectAllButton() -> some View {
+        let (allSelected, hasItems): (Bool, Bool) = {
+            switch vm.currentMediaType {
+            case .movies:
+                let allMovieIDs = Set(vm.groupedMovies.values.flatMap { $0.map(\.id) })
+                return (!allMovieIDs.isEmpty && vm.selectedMovies == allMovieIDs, !allMovieIDs.isEmpty)
+            case .photos:
+                let allPhotoIDs = Set(vm.groupedPhotos.values.flatMap { $0.map(\.id) })
+                return (!allPhotoIDs.isEmpty && vm.selectedPhotos == allPhotoIDs, !allPhotoIDs.isEmpty)
             }
-            vm.selectedMovies.removeAll()
-            
-            for photoID in vm.selectedPhotos {
-                guard let photo = vm.groupedPhotos.values.flatMap(\.self).first(where: { $0.id == photoID }) else { continue }
-                vm.deleteMedia(photo)
+        }()
+        if hasItems {
+            Button(allSelected ? "Deselect All" : "Select All") {
+                if allSelected {
+                    vm.deselectAll()
+                } else {
+                    vm.selectAll()
+                }
             }
-            vm.selectedPhotos.removeAll()
-            
-            self.editMode?.wrappedValue = .inactive
         }
     }
 }
@@ -550,6 +614,26 @@ extension WatchRecordings {
                 message += nsError.localizedDescription
             }
             self.error = .custom(message: message)
+        }
+        
+        func selectAll() {
+            switch currentMediaType {
+            case .movies:
+                let allMovieIDs = Set(groupedMovies.values.flatMap { $0.map(\.id) })
+                selectedMovies = allMovieIDs
+            case .photos:
+                let allPhotoIDs = Set(groupedPhotos.values.flatMap { $0.map(\.id) })
+                selectedPhotos = allPhotoIDs
+            }
+        }
+        
+        func deselectAll() {
+            switch currentMediaType {
+            case .movies:
+                selectedMovies.removeAll()
+            case .photos:
+                selectedPhotos.removeAll()
+            }
         }
     }
 }
