@@ -115,7 +115,9 @@ struct RecordingView: View {
             }
         }
         .onDisappear {
-            // Remove notification observers
+            if vm.isRecording {
+                ConnectivityManager.shared.sendMessage("stopRecording")
+            }
             NotificationCenter.default.removeObserver(self)
             cleanup()
         }
@@ -127,6 +129,9 @@ struct RecordingView: View {
                 self.vm.isRecording = isRecording
                 self.vm.recordingDuration = isRecording ? appCameraState.recordedDuration : 0
             default:
+                if vm.isRecording {
+                    ConnectivityManager.shared.sendMessage("stopRecording")
+                }
                 cleanup()
             }
         }
