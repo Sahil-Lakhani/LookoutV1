@@ -254,18 +254,30 @@ struct RecordingView: View {
             HStack(spacing: 15) {
                 let landscapeRotationAngle = { () -> Angle in
                     switch orientation {
-                    // case .portraitUpsideDown:
-                    //     return .degrees(-180)
-                    // case .landscapeLeft:
-                    //     return .degrees(-90)
-                    // case .landscapeRight:
-                    //     // return .degrees(90)
-                    //     return .zero
+                    case .portraitUpsideDown:
+                        return .degrees(180)
+                    case .landscapeLeft:
+                        return .degrees(90)
+                    case .landscapeRight:
+                        return .degrees(-90)
                     default:
                         return .zero
                     }
                 }
                 
+                // let landscapeRotationAngle = { () -> Angle in
+                //     switch orientation {
+                //     // case .portraitUpsideDown:
+                //     //     return .degrees(-180)
+                //     // case .landscapeLeft:
+                //     //     return .degrees(-90)
+                //     // case .landscapeRight:
+                //     //     // return .degrees(90)
+                //     //     return .zero
+                //     default:
+                //         return .zero
+                //     }
+                // }
                 IconButton(
                     "Options",
                     forMode: .options,
