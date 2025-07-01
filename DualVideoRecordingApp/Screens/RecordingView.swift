@@ -115,25 +115,18 @@ struct RecordingView: View {
             }
         }
         .onDisappear {
-            if vm.isRecording {
-                ConnectivityManager.shared.sendMessage("stopRecording")
-            }
+            // Remove notification observers
             NotificationCenter.default.removeObserver(self)
             cleanup()
         }
         .onScenePhaseChange { scenePhase in
             switch scenePhase {
             case .active:
-                ConnectivityManager.shared.sendMessage("appActive")
                 UIApplication.shared.isIdleTimerDisabled = true
                 let isRecording = appCameraState.isRecording
                 self.vm.isRecording = isRecording
                 self.vm.recordingDuration = isRecording ? appCameraState.recordedDuration : 0
             default:
-                ConnectivityManager.shared.sendMessage("appInactive")
-                if vm.isRecording {
-                    ConnectivityManager.shared.sendMessage("stopRecording")
-                }
                 cleanup()
             }
         }
@@ -536,13 +529,12 @@ extension RecordingView {
             withAnimation {
                 isRecording.toggle()
             }
-            ConnectivityManager.shared.sendMessage(isRecording ? "startRecording" : "stopRecording")
         #else
             if appCameraState.isRecording {
                 appCameraState.stopRecording()
                 withAnimation { isRecording = false }
-                ConnectivityManager.shared.sendMessage("stopRecording")
 
+                // ✅ Fetch thumbnail after recording ends
                 Task {
                     do {
                         let uiImage = try await fetchLatestThumbnail()
@@ -557,7 +549,6 @@ extension RecordingView {
             } else {
                 appCameraState.startRecording()
                 withAnimation { isRecording = true }
-                ConnectivityManager.shared.sendMessage("startRecording")
             }
         #endif
             if let timerHandler {
@@ -972,7 +963,7 @@ fileprivate struct RecordingViewPreview: View {
                 appCameraState.session,
                 with: appCameraState.frontPreviewLayer,
                 in: frontPreviewFrame
-            )
+         )
             .frame(width: frontPreviewFrame.width, height: frontPreviewFrame.height)
             .clipShape(RoundedRectangle(cornerRadius: 0, style: .continuous))
         case .two:
