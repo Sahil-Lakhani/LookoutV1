@@ -7,11 +7,18 @@
 
 import AVFoundation
 import SwiftUI
+import StorageSenseKit
 
 struct SettingsView: View {
     @StateObject private var navigationModel = NavigationModel()
     
     @Environment(\.dismiss) var dismiss
+    
+    @EnvironmentObject private var appCameraState: AppCameraState
+    
+    @State private var storageStatus: StorageStatus? = nil
+    
+    @AppStorage(Constants.isAudioEnabledKey.description) private var isAudioEnabled: Bool = false
     
     var body: some View {
         ZStack {
@@ -31,6 +38,7 @@ struct SettingsView: View {
                                 .font(.title2)
                                 .foregroundStyle(.gray.gradient)
                         )
+                         .padding(.vertical , 10)
                         
                         LabelledNavigationLink(
                             route: .cameraPreviewSettings,
@@ -40,30 +48,84 @@ struct SettingsView: View {
                                 .font(.title2)
                                 .foregroundStyle(.gray.gradient)
                         )
-                        
-                        LabelledNavigationLink(
-                            route: .storageSettings,
-                            title: "Storage",
-                            subTitle: "Check storage status",
-                            icon: Image(systemName: "folder.fill")
-                                .font(.title2)
-                                .foregroundStyle(.gray.gradient)
-                        )
+                        .padding(.vertical , 10)
                     }
-                    //                header: {
-                    //                    Text("Settings".uppercased())
-                    //                        .font(.headline)
-                    //                        .fontWeight(.bold)
-                    //                        .fontDesign(.rounded)
-                    //                        .padding(.bottom, 5)
-                    //                }
+
+                    // Storage Section (directly shown)
+                    Section{
+                        LabelledListItemCard(title: "Storage Status"){
+                        if let storageStatus = storageStatus {
+                            ProgressView(value: storageStatus.usedFraction) {
+                        Text("Space Available : \(storageStatus.formattedFreeSpace)")
+                            .font(.system(.headline,  weight: .bold))
+                            .foregroundStyle(.primary)
+                            // .padding(.top, 10)
+                    }
+                    .progressViewStyle(.linear)
+
+                    Text("\(storageStatus.description)")
+                        .font(.system(.subheadline,  weight: .bold))
+                        .foregroundStyle(.secondary)
+                        .padding(.bottom, 10)
                     
-                    //                AppDebugSection()
+                    // Text("\(storageStatus.formattedFreeSpace) Available")
+                    //     .font(.system(.headline, weight: .bold))
+                    //     .foregroundStyle(.primary)
+                    //     .padding(.vertical, 10)
+                    //     .frame(maxWidth: .infinity, alignment: .center)
+                        } else {
+                            Text("Loading...")
+                                .font(.system(.headline, weight: .bold))
+                                .foregroundStyle(.secondary)
+                        }
+                        }
+                    }
+                    // Audio Section
+                    Section {
+                        LabelledListItemCard(title: "Audio Settings") {
+                            Toggle(isOn: $isAudioEnabled) {
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text("Record Camera's Audio")
+                                        .font(.system(.headline, design: .rounded, weight: .bold))
+                                        .foregroundStyle(.primary)
+                                    Text("Enable/Disable audio recording from the camera")
+                                        .font(.system(.headline, design: .rounded))
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            .tint(.yellow)
+                            .toggleStyle(.switch)
+                            .onChange(of: isAudioEnabled) { appCameraState.isAudioDeviceEnabled = $0 }
+                        }
+                    }
                 }
                 .tint(.gray)
                 .navigationTitle("Settings".uppercased())
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationDestination(for: NavigationRoutes.self) { $0 }
+                .toolbar {
+    ToolbarItem(placement: .navigationBarLeading) {
+        Button(action: { dismiss() }) {
+            Image(systemName: "xmark")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(.primary) // Adapts to light/dark mode
+                .padding(8)
+                .background(
+                    Circle()
+                        .fill(Color(.systemGray5).opacity(0.6))
+                )
+        }
+        .accessibilityLabel("Close")
+    }
+}
+
+            }
+        }
+        .onAppear {
+            do {
+                storageStatus = try? .create()
+            } catch {
+                // Handle error if needed
             }
         }
     }
@@ -116,7 +178,7 @@ fileprivate struct AppDebugSection: View {
                 Text("App Debug Info".uppercased())
                     .font(.headline)
                     .fontWeight(.bold)
-                    .fontDesign(.rounded)
+                    // .fontDesign(.rounded)
             }
             
             Section {

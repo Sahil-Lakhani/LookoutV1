@@ -24,13 +24,12 @@ struct RecordingView: View {
     var isIPad: Bool { UIDevice.current.userInterfaceIdiom == .pad }
     
     var body: some View {
-        // Use the same layout for both iPhone and iPad for a consistent experience
-        VStack {
-            topControls
-                .onReceive(vm.timer) { _ in
-                    self.vm.recordingDuration = appCameraState.recordedDuration
-                }
-            
+        //   VStack {
+        //     topControls
+        //         .onReceive(vm.timer) { _ in
+        //             self.vm.recordingDuration = appCameraState.recordedDuration
+        //         }
+        ZStack {
             Group {
 #if targetEnvironment(simulator)
                 Color.gray
@@ -39,25 +38,36 @@ struct RecordingView: View {
 #else
                 GeometryReader { proxy in
                     cameraPreview(previewFrame: proxy.frame(in: .global))
+                        .ignoresSafeArea()
                 }
 #endif
             }
-            .overlay(alignment: .topLeading) {
-                HStack {
-                    Text(vm.formattedRecordingDuration)
-                        .font(.title3)
-                        .foregroundColor(.white)
-                        .padding(.trailing, 2)
-                    Circle()
-                        .fill(.red)
-                        .frame(width: 15, height: 15)
-                        .opacity(vm.isRecording ? 1 : 0)
+            // .overlay(alignment: .topLeading) {
+            //     HStack {
+            //         Text(vm.formattedRecordingDuration)
+            //             .font(.title3)
+            //             .foregroundColor(.white)
+            //             .padding(.trailing, 2)
+            //         Circle()
+            //             .fill(.red)
+            //             .frame(width: 15, height: 15)
+            //             .opacity(vm.isRecording ? 1 : 0)
+            //     }
+            //     .padding(.all, 18)
+            //     .opacity(vm.currentOverlayMode == .blackout ? 0 : 1)
+            // }
+            VStack {
+            topControls
+                .onReceive(vm.timer) { _ in
+                    self.vm.recordingDuration = appCameraState.recordedDuration
                 }
-                .padding(.all, 18)
-                .opacity(vm.currentOverlayMode == .blackout ? 0 : 1)
-            }
             
+            Spacer()
+            
+            // Bottom controls overlaid on camera
             bottomControls
+        }
+            .padding(.vertical, 0)
         }
         .overlay(alignment: .center) {
             Group {
@@ -75,7 +85,7 @@ struct RecordingView: View {
             }
             .animation(.easeOut, value: vm.currentOverlayMode)
         }
-        .background(.black)
+        // .background(.black)
         .interactiveToasts($navigationModel.toasts)
         .onAppear {
             self.orientation = UIDevice.current.orientation
@@ -221,25 +231,59 @@ struct RecordingView: View {
 //    }
     
     var topControls: some View {
-        HStack {
-//            SpeedometerText(speedTracker: speedTracker)
-            BatteryIndicatorIcon(batteryLevel: vm.batteryLevel)
-            Spacer()
-            Button {
-                guard !vm.isRecording else { return }
-                navigationModel.presentSheet(for: .settings)
-            } label: {
-                let audioInfo: LocalizedStringKey = appCameraState.isAudioDeviceEnabled ? "~~MUTE~~" : "MUTE"
-                RecordingInfoText(
-                    orientationText: isPotrait ? "PORTRAIT" : "LANDSCAPE",
-                    formattedResolution: appCameraState.formattedResolution,
-                    frameRate: appCameraState.frameRate,
-                    audioInfo: audioInfo
-                )
+//         HStack {
+// //            SpeedometerText(speedTracker: speedTracker)
+//             BatteryIndicatorIcon(batteryLevel: vm.batteryLevel)
+//             Spacer()
+//             Button {
+//                 guard !vm.isRecording else { return }
+//                 navigationModel.presentSheet(for: .settings)
+//             } label: {
+//                 let audioInfo: LocalizedStringKey = appCameraState.isAudioDeviceEnabled ? 
+//                 "~~MUTE~~" : "MUTE"
+//                 RecordingInfoText(
+//                     orientationText: isPotrait ? "PORTRAIT" : "LANDSCAPE",
+//                     formattedResolution: appCameraState.formattedResolution,
+//                     frameRate: appCameraState.frameRate,
+//                     audioInfo: audioInfo
+//                 )
+        VStack(alignment: .leading, spacing: 6) {
+            // Timer at the top
+            // Text(vm.formattedRecordingDuration)
+            //     .font(.title3)
+            //     .foregroundColor(.white)
+            //     .frame(maxWidth: .infinity, alignment: .leading)
+            // Timer at the top with red circle if recording
+            HStack(spacing: 8) {
+                Text(vm.formattedRecordingDuration)
+                    .font(.title3)
+                    .foregroundColor(.white)
+                if vm.isRecording {
+                    Circle()
+                        .fill(.red)
+                        .frame(width: 14, height: 14)
+                        .transition(.scale)
+                }
             }
-            .buttonStyle(PlainButtonStyle())
+            .frame(maxWidth: .infinity, alignment: .leading)
+            // Resolution and FPS side by side
+            HStack(spacing: 8) {
+                Text(appCameraState.formattedResolution)
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.85))
+                Text("\(appCameraState.frameRate) FPS")
+                    .font(.subheadline)
+                    .foregroundColor(.white.opacity(0.85))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            // Mute status
+            Text(appCameraState.isAudioDeviceEnabled ? "MUTE OFF" : "MUTE ON")
+                .font(.subheadline)
+                .foregroundColor(appCameraState.isAudioDeviceEnabled ? .green : .red)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal)
+        .padding(.top, 10)
     }
     
     var bottomControls: some View {
@@ -257,7 +301,6 @@ struct RecordingView: View {
                         return .zero
                     }
                 }
-                
                 // let landscapeRotationAngle = { () -> Angle in
                 //     switch orientation {
                 //     // case .portraitUpsideDown:
@@ -271,6 +314,7 @@ struct RecordingView: View {
                 //         return .zero
                 //     }
                 // }
+                
                 IconButton(
                     "Options",
                     forMode: .options,
@@ -280,14 +324,33 @@ struct RecordingView: View {
                 )
                 .rotationEffect(landscapeRotationAngle())
                 
-                GalleryButton(
-                    navigationModel: navigationModel,
-                    latestThumbnail: vm.latestThumbnail,
-                    isRecording: vm.isRecording
-                )
-                .rotationEffect(landscapeRotationAngle())
+                if !vm.isRecording {
+                
+                    VStack(spacing: 4) {
+                        HStack(spacing: 10) {
+                            GalleryButton(
+                                navigationModel: navigationModel,
+                                // latestThumbnail: vm.latestThumbnail,
+                                isRecording: vm.isRecording
+                            )
+                            .rotationEffect(landscapeRotationAngle())
+                            .background(.ultraThinMaterial)
+                            .cornerRadius(100)
+                            Button(action: {
+                                navigationModel.presentSheet(for: .settings)
+                            }) {
+                                Image(systemName: "gearshape")
+                                    .font(.system(size: 30, weight: .regular))
+                                    .foregroundColor(.white)
+                                    .padding(10)
+                                    .background(.ultraThinMaterial)
+                                    .cornerRadius(100)
+                            }
+                            .accessibilityLabel("Settings")
+                        }
+                    }
+                }
             }
-            
             Spacer()
             
             RecordButton(isRecording: vm.isRecording) {
@@ -517,7 +580,7 @@ extension RecordingView {
         @Published var recordingDuration: TimeInterval = 0
         @Published var recordDate: Date?
         @Published var currentOverlayMode: OverlayMode = .none
-        @Published var latestThumbnail: Image?
+        // @Published var latestThumbnail: Image?
         @Published var batteryLevel: Float = 0.51
         
         var formattedRecordingDuration: String {
@@ -535,16 +598,16 @@ extension RecordingView {
                 withAnimation { isRecording = false }
 
                 // ✅ Fetch thumbnail after recording ends
-                Task {
-                    do {
-                        let uiImage = try await fetchLatestThumbnail()
-                        await MainActor.run {
-                            self.latestThumbnail = Image(uiImage: uiImage)
-                        }
-                    } catch {
-                        logger.error("Thumbnail Fetch Error: \(error)")
-                    }
-                }
+                // Task {
+                //     do {
+                //         let uiImage = try await fetchLatestThumbnail()
+                //         await MainActor.run {
+                //             self.latestThumbnail = Image(uiImage: uiImage)
+                //         }
+                //     } catch {
+                //         logger.error("Thumbnail Fetch Error: \(error)")
+                //     }
+                // }
 
             } else {
                 appCameraState.startRecording()
@@ -711,11 +774,11 @@ fileprivate struct RecordButton: View {
         } label: {
             let outerCircleSize: CGFloat = 90
             let innerCircleSize: CGFloat = outerCircleSize - 15
-            Image(systemName: isRecording ? "stop.fill" : "circle.fill")
+            Image(isRecording ? "stopRecordButton" : "recordButton")
                 .resizable()
                 .scaledToFit()
                 .frame(width: innerCircleSize, height: innerCircleSize)
-                .scaleEffect(isRecording ? 0.75 : 1)
+                .scaleEffect(isRecording ? 0.9 : 1)
                 .animation(.snappy, value: isRecording)
                 .background {
                     Circle()
@@ -732,7 +795,7 @@ fileprivate struct RecordButton: View {
 
 fileprivate struct GalleryButton: View {
     @ObservedObject var navigationModel: NavigationModel
-    let latestThumbnail: Image?
+    // let latestThumbnail: Image?
     let isRecording: Bool
     
     var body: some View {
@@ -744,20 +807,25 @@ fileprivate struct GalleryButton: View {
             let cornerRadius: CGFloat = 50
 
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .stroke(lineWidth: 1.25)
+                .stroke(lineWidth: 0.25)
                 .fill(Color.white.opacity(1))
-                .frame(width: radius, height: radius)
+                .frame(width: radius*2, height: radius)
                 .overlay {
-                    if let thumbnail = latestThumbnail {
-                        thumbnail
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: radius - 5, height: radius - 5)
-                            .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
-                    } else {
-                        Image(systemName: "folder.fill")
-                            .font(.headline)
-                    }
+                    // if let thumbnail = latestThumbnail {
+                        // thumbnail
+                        //     .resizable()
+                        //     .scaledToFill()
+                        //     .frame(width: radius - 5, height: radius - 5)
+                        //     .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
+                    // } else {
+                        HStack(spacing: 2) {
+                            Image(systemName: "folder.fill")
+                                .font(.headline)
+                            Text("Files")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                        }
+                    // }
                 }
         }
         .accessibilityLabel("Gallery")
@@ -869,7 +937,8 @@ fileprivate struct RecordingViewPreview: View {
                     backCamPreview
                         .overlay(alignment: .topTrailing) {
                             frontCamPreview
-                                .padding([.top, .trailing], 15)
+                                .padding(.top, 72)
+                                .padding(.trailing, 15)
                         }
                 }
             case .two:
