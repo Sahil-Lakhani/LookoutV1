@@ -38,7 +38,10 @@ struct SettingsView: View {
                                 .font(.title2)
                                 .foregroundStyle(.gray.gradient)
                         )
-                         .padding(.vertical , 10)
+                        .padding(.vertical , 10)
+                        .listRowBackground(
+                           TopCornersRoundedBackground(radius: 20)
+                        )
                         
                         LabelledNavigationLink(
                             route: .cameraPreviewSettings,
@@ -49,6 +52,9 @@ struct SettingsView: View {
                                 .foregroundStyle(.gray.gradient)
                         )
                         .padding(.vertical , 10)
+                        .listRowBackground(
+                            BottomCornersRoundedBackground(radius: 20)
+                        )
                     }
 
                     // Storage Section (directly shown)
@@ -104,9 +110,9 @@ struct SettingsView: View {
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationDestination(for: NavigationRoutes.self) { $0 }
                 .toolbar {
-    ToolbarItem(placement: .navigationBarLeading) {
-        Button(action: { dismiss() }) {
-            Image(systemName: "xmark")
+                ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: { dismiss() }) {
+                Image(systemName: "xmark")
                 .font(.system(size: 10, weight: .semibold))
                 .foregroundColor(.primary) // Adapts to light/dark mode
                 .padding(8)
@@ -241,6 +247,71 @@ fileprivate struct AppDebugSection: View {
         let deviceSets = discoverySession.supportedMultiCamDeviceSets
         
         self.multicamDeviceNames = deviceSets.map { $0.map(\.localizedName) }
+    }
+}
+
+struct TopCornersRoundedBackground: View {
+    let radius: CGFloat
+    var body: some View {
+        GeometryReader { geo in
+            Path { path in
+                let w = geo.size.width
+                let h = geo.size.height
+                path.move(to: CGPoint(x: 0, y: radius))
+                path.addArc(
+                    center: CGPoint(x: radius, y: radius),
+                    radius: radius,
+                    startAngle: .degrees(180),
+                    endAngle: .degrees(270),
+                    clockwise: false
+                )
+                path.addLine(to: CGPoint(x: w - radius, y: 0))
+                path.addArc(
+                    center: CGPoint(x: w - radius, y: radius),
+                    radius: radius,
+                    startAngle: .degrees(270),
+                    endAngle: .degrees(0),
+                    clockwise: false
+                )
+                path.addLine(to: CGPoint(x: w, y: h))
+                path.addLine(to: CGPoint(x: 0, y: h))
+                path.closeSubpath()
+            }
+            .fill(.thinMaterial)
+        }
+    }
+}
+
+struct BottomCornersRoundedBackground: View {
+    let radius: CGFloat
+    var body: some View {
+        GeometryReader { geo in
+            Path { path in
+                let w = geo.size.width
+                let h = geo.size.height
+                path.move(to: .zero)
+                path.addLine(to: CGPoint(x: w, y: 0))
+                path.addLine(to: CGPoint(x: w, y: h - radius))
+                path.addArc(
+                    center: CGPoint(x: w - radius, y: h - radius),
+                    radius: radius,
+                    startAngle: .degrees(0),
+                    endAngle: .degrees(90),
+                    clockwise: false
+                )
+                path.addLine(to: CGPoint(x: radius, y: h))
+                path.addArc(
+                    center: CGPoint(x: radius, y: h - radius),
+                    radius: radius,
+                    startAngle: .degrees(90),
+                    endAngle: .degrees(180),
+                    clockwise: false
+                )
+                path.addLine(to: CGPoint(x: 0, y: 0))
+                path.closeSubpath()
+            }
+            .fill(.thinMaterial)
+        }
     }
 }
 
