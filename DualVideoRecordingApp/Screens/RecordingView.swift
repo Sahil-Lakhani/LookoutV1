@@ -288,7 +288,7 @@ struct RecordingView: View {
     
     var bottomControls: some View {
         HStack {
-            HStack(spacing: 15) {
+            // HStack(spacing: 15) {
                 let landscapeRotationAngle = { () -> Angle in
                     switch orientation {
                     case .portraitUpsideDown:
@@ -323,6 +323,7 @@ struct RecordingView: View {
                     vm: vm
                 )
                 .rotationEffect(landscapeRotationAngle())
+                .padding(.trailing, 3)
                 if !vm.isRecording {
                     HStack(spacing: 10) {
                         GalleryButton(
@@ -333,6 +334,8 @@ struct RecordingView: View {
                         // .rotationEffect(landscapeRotationAngle())
                         .background(.ultraThinMaterial)
                         .cornerRadius(100)
+
+                        //settings button
                         Button(action: {
                             navigationModel.presentSheet(for: .settings)
                         }) {
@@ -346,7 +349,7 @@ struct RecordingView: View {
                         .accessibilityLabel("Settings")
                     }
                 }
-            }
+            // }
             Spacer()
             RecordButton(isRecording: vm.isRecording, rotation: {
                 switch orientation {
