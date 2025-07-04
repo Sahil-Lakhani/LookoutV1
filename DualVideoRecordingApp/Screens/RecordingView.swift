@@ -778,7 +778,7 @@ fileprivate struct RecordButton: View {
             // Haptic feedback has been triggered in the button action.
             action()
         } label: {
-            let outerCircleSize: CGFloat = 90
+            let outerCircleSize: CGFloat = 110
             let innerCircleSize: CGFloat = outerCircleSize - 15
             Image(isRecording ? "stopRecordButton" : "recordButton")
                 .resizable()
@@ -790,7 +790,7 @@ fileprivate struct RecordButton: View {
                 .background {
                     Circle()
                         .stroke(lineWidth: 2.5)
-                        .fill(.white.opacity(0.25))
+                        .fill(.white.opacity(0))
                         .frame(width: outerCircleSize, height: outerCircleSize)
                 }
                 .padding(.trailing, 10)
