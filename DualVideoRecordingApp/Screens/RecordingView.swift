@@ -327,7 +327,8 @@ struct RecordingView: View {
                     HStack(spacing: 10) {
                         GalleryButton(
                             navigationModel: navigationModel,
-                            isRecording: vm.isRecording
+                            isRecording: vm.isRecording,
+                            rotation: landscapeRotationAngle()
                         )
                         // .rotationEffect(landscapeRotationAngle())
                         .background(.ultraThinMaterial)
@@ -800,23 +801,25 @@ fileprivate struct RecordButton: View {
     }
 }
 
+
 fileprivate struct GalleryButton: View {
     @ObservedObject var navigationModel: NavigationModel
     // let latestThumbnail: Image?
     let isRecording: Bool
+    let rotation: Angle
     
     var body: some View {
         Button {
             guard !isRecording else { return }
             navigationModel.push(to: .recordings)
         } label: {
-            let radius: CGFloat = 52
+            let radius: CGFloat = 55
             let cornerRadius: CGFloat = 50
 
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .stroke(lineWidth: 0.25)
+                .stroke(lineWidth: 1.25)
                 .fill(Color.white.opacity(0))
-                .frame(width: radius*2, height: radius)
+                .frame(width: radius, height: radius)
                 .overlay {
                     // if let thumbnail = latestThumbnail {
                         // thumbnail
@@ -825,23 +828,20 @@ fileprivate struct GalleryButton: View {
                         //     .frame(width: radius - 5, height: radius - 5)
                         //     .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
                     // } else {
-                        HStack(spacing: 2) {
-                            Image(systemName: "folder.fill")
-                                .font(.headline)
-                            Text("Files")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                        }
+                        Image(systemName: "folder.fill")
+                            .font(.system(size: 24))
                     // }
                 }
         }
         .accessibilityLabel("Gallery")
         .tint(.white)
-        .font(.system(size: 36, weight: .regular))
+        // .font(.system(size: 36, weight: .regular))
         .allowsHitTesting(!isRecording)
         .opacity(isRecording ? 0.0 : 1)
+        .rotationEffect(rotation)
     }
 }
+
 
 //reeeecording
 fileprivate struct RecordingIndicatorView: View {
