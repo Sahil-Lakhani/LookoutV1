@@ -323,37 +323,42 @@ struct RecordingView: View {
                     vm: vm
                 )
                 .rotationEffect(landscapeRotationAngle())
-                
                 if !vm.isRecording {
-                
-                    VStack(spacing: 4) {
-                        HStack(spacing: 10) {
-                            GalleryButton(
-                                navigationModel: navigationModel,
-                                // latestThumbnail: vm.latestThumbnail,
-                                isRecording: vm.isRecording
-                            )
-                            .rotationEffect(landscapeRotationAngle())
-                            .background(.ultraThinMaterial)
-                            .cornerRadius(100)
-                            Button(action: {
-                                navigationModel.presentSheet(for: .settings)
-                            }) {
-                                Image(systemName: "gearshape")
-                                    .font(.system(size: 30, weight: .regular))
-                                    .foregroundColor(.white)
-                                    .padding(10)
-                                    .background(.ultraThinMaterial)
-                                    .cornerRadius(100)
-                            }
-                            .accessibilityLabel("Settings")
+                    HStack(spacing: 10) {
+                        GalleryButton(
+                            navigationModel: navigationModel,
+                            isRecording: vm.isRecording
+                        )
+                        // .rotationEffect(landscapeRotationAngle())
+                        .background(.ultraThinMaterial)
+                        .cornerRadius(100)
+                        Button(action: {
+                            navigationModel.presentSheet(for: .settings)
+                        }) {
+                            Image(systemName: "gearshape")
+                                .font(.system(size: 30, weight: .regular))
+                                .foregroundColor(.white)
+                                .padding(10)
+                                .background(.ultraThinMaterial)
+                                .cornerRadius(100)
                         }
+                        .accessibilityLabel("Settings")
                     }
                 }
             }
             Spacer()
-            
-            RecordButton(isRecording: vm.isRecording) {
+            RecordButton(isRecording: vm.isRecording, rotation: {
+                switch orientation {
+                case .portraitUpsideDown:
+                    return .degrees(180)
+                case .landscapeLeft:
+                    return .degrees(90)
+                case .landscapeRight:
+                    return .degrees(-90)
+                default:
+                    return .zero
+                }
+            }()) {
                 // Haptic feedback when toggling recording.
                 let generator = UIImpactFeedbackGenerator(style: .heavy)
                 generator.impactOccurred()
@@ -765,6 +770,7 @@ fileprivate struct BatteryIndicatorIcon: View {
 
 fileprivate struct RecordButton: View {
     let isRecording: Bool
+    let rotation: Angle
     let action: () -> Void
     
     var body: some View {
@@ -778,6 +784,7 @@ fileprivate struct RecordButton: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: innerCircleSize, height: innerCircleSize)
+                .rotationEffect(rotation)
                 .scaleEffect(isRecording ? 0.9 : 1)
                 .animation(.snappy, value: isRecording)
                 .background {
