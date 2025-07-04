@@ -815,7 +815,7 @@ fileprivate struct GalleryButton: View {
 
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .stroke(lineWidth: 0.25)
-                .fill(Color.white.opacity(1))
+                .fill(Color.white.opacity(0))
                 .frame(width: radius*2, height: radius)
                 .overlay {
                     // if let thumbnail = latestThumbnail {
