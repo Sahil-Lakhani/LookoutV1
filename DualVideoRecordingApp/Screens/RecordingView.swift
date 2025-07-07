@@ -57,16 +57,32 @@ struct RecordingView: View {
             //     .opacity(vm.currentOverlayMode == .blackout ? 0 : 1)
             // }
             VStack {
-            topControls
-                .onReceive(vm.timer) { _ in
-                    self.vm.recordingDuration = appCameraState.recordedDuration
-                }
-            
-            Spacer()
-            
-            // Bottom controls overlaid on camera
-            bottomControls
-        }
+                let rotationAngle: Angle = {
+                    switch orientation {
+                    case .portraitUpsideDown:
+                        return .degrees(180)
+                    case .landscapeLeft:
+                        return .degrees(90)
+                    case .landscapeRight:
+                        return .degrees(-90)
+                    default:
+                        return .zero
+                    }
+                }()
+                topControls
+                    .rotationEffect(rotationAngle)
+                    .animation(.easeInOut(duration: 0.3), value: orientation)
+                    .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
+                        orientation = UIDevice.current.orientation
+                    }
+                    .onAppear {
+                        orientation = UIDevice.current.orientation
+                    }
+                Spacer()
+                
+                // Bottom controls overlaid on camera
+                bottomControls
+            }
             .padding(.vertical, 0)
         }
         .overlay(alignment: .center) {
@@ -230,7 +246,7 @@ struct RecordingView: View {
 //        }
 //    }
     
-    var topControls: some View {
+    // var topControls: some View {
 //         HStack {
 // //            SpeedometerText(speedTracker: speedTracker)
 //             BatteryIndicatorIcon(batteryLevel: vm.batteryLevel)
@@ -247,12 +263,8 @@ struct RecordingView: View {
 //                     frameRate: appCameraState.frameRate,
 //                     audioInfo: audioInfo
 //                 )
+    var topControls: some View {
         VStack(alignment: .leading, spacing: 6) {
-            // Timer at the top
-            // Text(vm.formattedRecordingDuration)
-            //     .font(.title3)
-            //     .foregroundColor(.white)
-            //     .frame(maxWidth: .infinity, alignment: .leading)
             // Timer at the top with red circle if recording
             HStack(spacing: 8) {
                 Text(vm.formattedRecordingDuration)
@@ -265,7 +277,7 @@ struct RecordingView: View {
                         .transition(.scale)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            // .frame(maxWidth: 400, alignment: .leading)
             // Resolution and FPS side by side
             HStack(spacing: 8) {
                 Text(appCameraState.formattedResolution)
@@ -275,15 +287,19 @@ struct RecordingView: View {
                     .font(.subheadline)
                     .foregroundColor(.white.opacity(0.85))
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            // .frame(maxWidth: .infinity, alignment: .leading)
             // Mute status as icon
             HStack(spacing: 6) {
                 Image(systemName: appCameraState.isAudioDeviceEnabled ? "mic.fill" : "mic.slash.fill")
                     .foregroundColor(appCameraState.isAudioDeviceEnabled ? .green : .red)
                     .font(.system(size: 18, weight: .semibold))
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            // .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .background(
+            RoundedRectangle(cornerRadius: 7)
+                .fill(Color.black.opacity(0.9))
+        )
         .padding(.horizontal)
         .padding(.top, 10)
     }
