@@ -115,9 +115,9 @@ Video stabilization is enabled, as a result video will be smoother.
                 }
             }
             
-            LabelledListItemCard(title: "Audio Settings") {
-                muteToggle
-            }
+            // LabelledListItemCard(title: "Audio Settings") {
+            //     muteToggle
+            // }
         }
         .navigationTitle("Video Recording Settings")
         .navigationBarTitleDisplayMode(.inline)

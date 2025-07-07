@@ -276,11 +276,13 @@ struct RecordingView: View {
                     .foregroundColor(.white.opacity(0.85))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            // Mute status
-            Text(appCameraState.isAudioDeviceEnabled ? "MUTE OFF" : "MUTE ON")
-                .font(.subheadline)
-                .foregroundColor(appCameraState.isAudioDeviceEnabled ? .green : .red)
-                .frame(maxWidth: .infinity, alignment: .leading)
+            // Mute status as icon
+            HStack(spacing: 6) {
+                Image(systemName: appCameraState.isAudioDeviceEnabled ? "mic.fill" : "mic.slash.fill")
+                    .foregroundColor(appCameraState.isAudioDeviceEnabled ? .green : .red)
+                    .font(.system(size: 18, weight: .semibold))
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal)
         .padding(.top, 10)

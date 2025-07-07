@@ -3,6 +3,7 @@
 //  DualVideoRecordingApp
 //
 //  Created by Sharan Thakur on 19/12/24.
+//  Updated by D1ecast on 04/06/25.
 //
 
 import AVFoundation
@@ -38,7 +39,9 @@ struct SettingsView: View {
                                 .font(.title2)
                                 .foregroundStyle(.gray.gradient)
                         )
-                        .padding(.vertical , 10)
+                        .padding(.top , 20)
+                        .padding(.leading,5)
+                        .padding(.trailing, 6)
                         .listRowBackground(
                            TopCornersRoundedBackground(radius: 20)
                         )
@@ -51,7 +54,9 @@ struct SettingsView: View {
                                 .font(.title2)
                                 .foregroundStyle(.gray.gradient)
                         )
-                        .padding(.vertical , 10)
+                        .padding(.bottom , 20)
+                        .padding(.leading, 5)
+                        .padding(.trailing, 6)
                         .listRowBackground(
                             BottomCornersRoundedBackground(radius: 20)
                         )
@@ -68,6 +73,7 @@ struct SettingsView: View {
                             // .padding(.top, 10)
                     }
                     .progressViewStyle(.linear)
+                    .padding(.trailing,11)
 
                     Text("\(storageStatus.description)")
                         .font(.system(.subheadline,  weight: .bold))
@@ -86,6 +92,7 @@ struct SettingsView: View {
                         }
                         }
                     }
+                    
                     // Audio Section
                     Section {
                         LabelledListItemCard(title: "Audio Settings") {
@@ -102,7 +109,36 @@ struct SettingsView: View {
                             .tint(.yellow)
                             .toggleStyle(.switch)
                             .onChange(of: isAudioEnabled) { appCameraState.isAudioDeviceEnabled = $0 }
+                            .padding(.trailing, 10)
                         }
+                    }
+                    
+                    // App Info Section
+                    Section {
+                        HStack {
+                            Spacer()
+                            
+                            VStack(spacing: 8) {
+                                Image("lookOutAppIcon")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 36, height: 36)
+                                
+                                VStack(spacing: 2) {
+                                    Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "App Name")
+                                        .font(.system(.headline, weight: .bold))
+                                        .foregroundStyle(.primary)
+                                    
+                                    Text("Version \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0")")
+                                        .font(.system(.subheadline))
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            
+                            Spacer()
+                        }
+                        .padding(.vertical, 32)
+                        .listRowBackground(Color.clear)
                     }
                 }
                 .tint(.gray)

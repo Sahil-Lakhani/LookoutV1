@@ -35,7 +35,7 @@ struct PreviewLayerView: UIViewRepresentable {
     func makeUIView(context: Context) -> PreviewLayer {
         uiView.previewLayer.frame = frame
         uiView.setSession(to: session)
-        setVideoOrientation()
+        // setVideoOrientation()
         
         let tapGestureRecognizer = Self.TapInteraction(target: context.coordinator, withTouchCount: 1)
         uiView.addGestureRecognizer(tapGestureRecognizer)
@@ -50,7 +50,7 @@ struct PreviewLayerView: UIViewRepresentable {
     
     func updateUIView(_ uiView: PreviewLayer, context: Context) {
         uiView.previewLayer.frame = frame
-        setVideoOrientation()
+        // setVideoOrientation()
     }
     
     func makeCoordinator() -> Coordinator {
