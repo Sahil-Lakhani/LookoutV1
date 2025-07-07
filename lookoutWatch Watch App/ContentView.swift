@@ -15,58 +15,15 @@ struct ContentView: View {
 
     var body: some View {
         VStack {
-            Button(action: {
-                sendMessage(action: "testConnection")
-            }) {
-                Text("Test Connection")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .tint(.blue)
-            .padding(.bottom, 20)
-
             Spacer()
-
-            if isRecording {
-                HStack(spacing: 8) {
-                    Circle()
-                        .fill(.red)
-                        .frame(width: 12, height: 12)
-                    Text("Recording")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                }
-                .padding(.vertical, 6)
-                .padding(.horizontal, 12)
-                .cornerRadius(100)
-                .transition(.opacity)
-            }
-
-            if isScreenshotSaved {
-                HStack(spacing: 8) {
-                    Circle()
-                        .fill(.green)
-                        .frame(width: 12, height: 12)
-                    Text("Screenshot Saved")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                }
-                .padding(.vertical, 6)
-                .padding(.horizontal, 12)
-                .cornerRadius(100)
-                .transition(.opacity)
-            }
-
-            Spacer()
-
-            HStack(spacing: 40) {
+            HStack(spacing: 25) {
                 Button(action: {
                     isRecording.toggle()
                     let action = isRecording ? "startRecording" : "stopRecording"
                     sendMessage(action: action)
                 }) {
-                    let outerCircleSize: CGFloat = 60
-                    let innerCircleSize: CGFloat = outerCircleSize - 10
+                    let outerCircleSize: CGFloat = 70
+                    let innerCircleSize: CGFloat = outerCircleSize - 0
                     Image(systemName: isRecording ? "stop.fill" : "circle.fill")
                         .resizable()
                         .scaledToFit()
@@ -74,14 +31,15 @@ struct ContentView: View {
                         .background {
                             Circle()
                                 .stroke(lineWidth: 2)
-                                .fill(.white.opacity(0.25))
+                                .fill(.black.opacity(0.25))
                                 .frame(width: outerCircleSize, height: outerCircleSize)
                         }
                 }
                 .tint(.red)
+                .frame(width: 70, height: 70)
+                // .disabled(!connectivityManager.isPhoneAppActive)
 
                 Button(action: {
-                    // Haptic feedback for screenshot
                     WKInterfaceDevice.current().play(.click)
                     sendMessage(action: "captureScreenshot")
                     withAnimation {
@@ -93,24 +51,108 @@ struct ContentView: View {
                         }
                     }
                 }) {
-                    let outerCircleSize: CGFloat = 60
-                    let innerCircleSize: CGFloat = outerCircleSize - 10
-                    Image(systemName: "camera.fill")
+                    let outerCircleSize: CGFloat = 70
+                    let innerCircleSize: CGFloat = outerCircleSize - 0
+                    Image(systemName: "camera.circle.fill")
                         .resizable()
                         .scaledToFit()
                         .frame(width: innerCircleSize, height: innerCircleSize)
-                        .background {
-                            Circle()
-                                .stroke(lineWidth: 2)
-                                .fill(.white.opacity(0.25))
-                                .frame(width: outerCircleSize, height: outerCircleSize)
-                        }
+                        // .background {
+                        //     Circle()
+                        //         .stroke(lineWidth: 2)
+                        //         .fill(.black.opacity(0.25))
+                        //         .frame(width: outerCircleSize, height: outerCircleSize)
+                        // }
                 }
-                .tint(.blue)
+                .frame(width: 70, height: 70)
+                .disabled(!connectivityManager.isPhoneAppActive)
             }
             .padding(.horizontal, 30)
+            .padding(.top, 20)
+
+            Spacer() // Push buttons to the center of the screen
+
+            // Bottom Status Text
+            VStack(spacing: 8) {
+                // if isRecording {
+                //     HStack(spacing: 8) {
+                //         Circle()
+                //             .fill(.red)
+                //             .frame(width: 12, height: 12)
+                //         Text("Recording")
+                //             .font(.headline)
+                //             .foregroundColor(.white)
+                //     }
+                //     .transition(.opacity)
+                // }
+
+                // if isScreenshotSaved {
+                //     HStack(spacing: 8) {
+                //         Circle()
+                //             .fill(.green)
+                //             .frame(width: 12, height: 12)
+                //         Text("Screenshot Saved")
+                //             .font(.headline)
+                //             .foregroundColor(.white)
+                //     }
+                //     .transition(.opacity)
+                // }
+                Group {
+    if connectivityManager.isPhoneAppActive {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(.green)
+                .frame(width: 12, height: 12)
+            Text("app active")
+                .font(.headline)
+                .foregroundColor(.white)
+        }
+        .transition(.opacity)
+    } else {
+        HStack(spacing: 8) {
+            Circle()
+                .fill(.green)
+                .frame(width: 12, height: 12)
+            Text("app active")
+                .font(.headline)
+                .foregroundColor(.white)
+        }
+        .transition(.opacity)
+    }
+}
+
+                // Text(connectivityManager.isPhoneAppActive ? 
+                    // HStack(spacing: 8) {
+                    //     Circle()
+                    //         .fill(.green)
+                    //         .frame(width: 12, height: 12)
+                    //     Text("App active")
+                    //         .font(.headline)
+                    //         .foregroundColor(.white)
+                    // }
+                    // .transition(.opacity) 
+                //     : HStack(spacing:8){
+                //         Circle()
+                //             .fill(.green)
+                //             .frame(width: 12, height: 12)
+                //         Text("App not active")
+                //             .font(.headline)
+                //             .foregroundColor(.white)
+                //     }
+                //     .transition(.opacity))
+                    .foregroundColor(connectivityManager.isPhoneAppActive ? .gray : .gray)
+                    .font(.footnote)
+            }
+            .padding(.top, 30) // Ensure the text is at the bottom
         }
         .padding()
+        .onReceive(connectivityManager.$lastReceivedAction) { action in
+            if action == "stopRecording" {
+                isRecording = false
+            } else if action == "startRecording" {
+                isRecording = true
+            }
+        }
     }
 
     private func sendMessage(action: String) {
