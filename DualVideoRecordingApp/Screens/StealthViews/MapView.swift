@@ -77,13 +77,20 @@ fileprivate final class MapViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Stealth dark mode for all UIKit elements
         overrideUserInterfaceStyle = .dark
-        
         setupMapView()
         setupLocationManager()
-        setupNavigationItems()
+//        setupSearchBar()
+        setupMapControls()
         setupCloseButton()
+    }
+    
+    // MARK: Orientation Support
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return .all
+    }
+    override var shouldAutorotate: Bool {
+        return true
     }
     
     // MARK: Setup Methods
@@ -164,14 +171,67 @@ fileprivate final class MapViewController: UIViewController {
         updateMapTypeButton(to: .standard)
     }
     
+//    private func setupCloseButton() {
+//        let closeButton = UIBarButtonItem(
+//            barButtonSystemItem: .close,
+//            target: self,
+//            action: #selector(closeView)
+//        )
+//        closeButton.accessibilityLabel = "Close"
+//        navigationItem.leftBarButtonItem = closeButton
+//    }
+    
+    // 1) Search bar just like Apple Maps
+        private func setupSearchBar() {
+            let searchResultsVC = SearchSheetViewController()
+            searchResultsVC.delegate = self
+
+            let search = UISearchController(searchResultsController: searchResultsVC)
+//            search.searchResultsUpdater = searchResultsVC
+            search.obscuresBackgroundDuringPresentation = false
+            search.searchBar.placeholder = "Search for a place"
+            navigationItem.searchController = search
+            navigationItem.hidesSearchBarWhenScrolling = false
+            navigationItem.title = "Maps"
+            navigationController?.navigationBar.prefersLargeTitles = true
+            navigationController?.navigationBar.sizeToFit()
+        }
+
+        // 2) Native MapKit buttons for recenter (user tracking) & compass
+        private func setupMapControls() {
+            // user-tracking button (blue “locate me” pill)
+            let tracking = MKUserTrackingButton(mapView: mapView)
+            tracking.backgroundColor = .systemBackground.withAlphaComponent(0.8)
+            tracking.layer.cornerRadius = 8
+            tracking.translatesAutoresizingMaskIntoConstraints = false
+
+            // compass button
+//            let compass = MKCompassButton(mapView: mapView)
+//            compass.compassVisibility = .visible
+//            compass.backgroundColor = .systemBackground.withAlphaComponent(0.8)
+//            compass.layer.cornerRadius = 8
+//            compass.translatesAutoresizingMaskIntoConstraints = false
+
+//            view.addSubview(compass)
+            view.addSubview(tracking)
+
+            NSLayoutConstraint.activate([
+                // bottom-right for the “locate me” button
+                tracking.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+                tracking.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -90),
+
+                // just above it, the compass
+//                compass.trailingAnchor.constraint(equalTo: tracking.trailingAnchor),
+//                compass.bottomAnchor.constraint(equalTo: tracking.topAnchor, constant: -16),
+            ])
+        }
+    
     private func setupCloseButton() {
-        let closeButton = UIBarButtonItem(
+        let close = UIBarButtonItem(
             barButtonSystemItem: .close,
             target: self,
-            action: #selector(closeView)
-        )
-        closeButton.accessibilityLabel = "Close"
-        navigationItem.leftBarButtonItem = closeButton
+            action: #selector(closeView))
+            navigationItem.leftBarButtonItem = close
     }
     
     // MARK: UI Helpers
@@ -308,14 +368,14 @@ extension MapViewController: CLLocationManagerDelegate {
     }
     
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-        guard let latestLocation = locations.last else { return }
-        // Always update the region to the latest user location.
-        let region = MKCoordinateRegion(
-            center: latestLocation.coordinate,
-            latitudinalMeters: 1000,
-            longitudinalMeters: 1000
-        )
-        mapView.setRegion(region, animated: true)
+//        guard let latestLocation = locations.last else { return }
+//        // Always update the region to the latest user location.
+//        let region = MKCoordinateRegion(
+//            center: latestLocation.coordinate,
+//            latitudinalMeters: 1000,
+//            longitudinalMeters: 1000
+//        )
+//        mapView.setRegion(region, animated: true)
     }
 }
 
