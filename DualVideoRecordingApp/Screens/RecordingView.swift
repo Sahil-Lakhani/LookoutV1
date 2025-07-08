@@ -42,45 +42,33 @@ struct RecordingView: View {
                 }
 #endif
             }
-            // .overlay(alignment: .topLeading) {
-            //     HStack {
-            //         Text(vm.formattedRecordingDuration)
-            //             .font(.title3)
-            //             .foregroundColor(.white)
-            //             .padding(.trailing, 2)
-            //         Circle()
-            //             .fill(.red)
-            //             .frame(width: 15, height: 15)
-            //             .opacity(vm.isRecording ? 1 : 0)
-            //     }
-            //     .padding(.all, 18)
-            //     .opacity(vm.currentOverlayMode == .blackout ? 0 : 1)
-            // }
+            // Top controls at the top leading, rotating around their own center
             VStack {
-                let rotationAngle: Angle = {
-                    switch orientation {
-                    case .portraitUpsideDown:
-                        return .degrees(180)
-                    case .landscapeLeft:
-                        return .degrees(90)
-                    case .landscapeRight:
-                        return .degrees(-90)
-                    default:
-                        return .zero
-                    }
-                }()
-                topControls
-                    .rotationEffect(rotationAngle)
-                    .animation(.easeInOut(duration: 0.3), value: orientation)
-                    .onReceive(NotificationCenter.default.publisher(for: UIDevice.orientationDidChangeNotification)) { _ in
-                        orientation = UIDevice.current.orientation
-                    }
-                    .onAppear {
-                        orientation = UIDevice.current.orientation
-                    }
+                HStack(alignment: .top) {
+                    topControls
+                        .rotationEffect({
+                            switch orientation {
+                            case .portraitUpsideDown:
+                                return .degrees(180)
+                            case .landscapeLeft:
+                                return .degrees(90)
+                            case .landscapeRight:
+                                return .degrees(-90)
+                            default:
+                                return .zero
+                            }
+                        }())
+                        .animation(.easeInOut(duration: 0.3), value: orientation)
+                    Spacer()
+                }
                 Spacer()
-                
-                // Bottom controls overlaid on camera
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+            .padding(.top, 20)
+            .padding(.leading, 10)
+            // Bottom controls overlaid on camera
+            VStack {
+                Spacer()
                 bottomControls
             }
             .padding(.vertical, 0)
@@ -187,6 +175,11 @@ struct RecordingView: View {
         .onOrientationChange { (newOrientation: UIDeviceOrientation) in
             withAnimation {
                 self.orientation = newOrientation
+            }
+        }
+        .onReceive(vm.timer) { _ in
+            if vm.isRecording {
+                vm.recordingDuration += 1
             }
         }
         .task {
@@ -298,7 +291,7 @@ struct RecordingView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 7)
-                .fill(Color.black.opacity(0.9))
+                .fill(Color.black.opacity(0))
         )
         .padding(.horizontal)
         .padding(.top, 10)
@@ -834,7 +827,7 @@ fileprivate struct GalleryButton: View {
             guard !isRecording else { return }
             navigationModel.push(to: .recordings)
         } label: {
-            let radius: CGFloat = 55
+            let radius: CGFloat = 60
             let cornerRadius: CGFloat = 50
 
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
