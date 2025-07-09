@@ -18,8 +18,7 @@ struct ContentView: View {
             Spacer()
             HStack(spacing: 25) {
                 Button(action: {
-                    isRecording.toggle()
-                    let action = isRecording ? "startRecording" : "stopRecording"
+                    let action = isRecording ? "stopRecording" : "startRecording"
                     sendMessage(action: action)
                 }) {
                     let outerCircleSize: CGFloat = 70

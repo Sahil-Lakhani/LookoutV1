@@ -130,17 +130,25 @@ struct RecordingView: View {
         }
         .onDisappear {
             // Remove notification observers
+            if vm.isRecording {
+                ConnectivityManager.shared.sendMessage("stopRecording")
+            }
             NotificationCenter.default.removeObserver(self)
             cleanup()
         }
         .onScenePhaseChange { scenePhase in
             switch scenePhase {
             case .active:
+                ConnectivityManager.shared.sendMessage("appActive")
                 UIApplication.shared.isIdleTimerDisabled = true
                 let isRecording = appCameraState.isRecording
                 self.vm.isRecording = isRecording
                 self.vm.recordingDuration = isRecording ? appCameraState.recordedDuration : 0
             default:
+            ConnectivityManager.shared.sendMessage("appInactive")
+                if vm.isRecording {
+                    ConnectivityManager.shared.sendMessage("stopRecording")
+                }
                 cleanup()
             }
         }
@@ -612,11 +620,14 @@ extension RecordingView {
             withAnimation {
                 isRecording.toggle()
             }
+            // Always notify the watch of the new state
+            ConnectivityManager.shared.sendMessage(isRecording ? "startRecording" : "stopRecording")
         #else
             if appCameraState.isRecording {
                 appCameraState.stopRecording()
                 withAnimation { isRecording = false }
-
+                // Always notify the watch of the new state
+                ConnectivityManager.shared.sendMessage("stopRecording")
                 // ✅ Fetch thumbnail after recording ends
                 // Task {
                 //     do {
@@ -632,6 +643,8 @@ extension RecordingView {
             } else {
                 appCameraState.startRecording()
                 withAnimation { isRecording = true }
+                // Always notify the watch of the new state
+                ConnectivityManager.shared.sendMessage("startRecording")
             }
         #endif
             if let timerHandler {
