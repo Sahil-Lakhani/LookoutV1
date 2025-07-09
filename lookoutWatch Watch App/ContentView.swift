@@ -36,7 +36,7 @@ struct ContentView: View {
                 }
                 .tint(.red)
                 .frame(width: 70, height: 70)
-                // .disabled(!connectivityManager.isPhoneAppActive)
+                .disabled(!connectivityManager.isPhoneAppActive)
 
                 Button(action: {
                     WKInterfaceDevice.current().play(.click)
@@ -110,9 +110,9 @@ struct ContentView: View {
     } else {
         HStack(spacing: 8) {
             Circle()
-                .fill(.green)
+                .fill(.gray)
                 .frame(width: 12, height: 12)
-            Text("app active")
+            Text("app inactive")
                 .font(.headline)
                 .foregroundColor(.white)
         }

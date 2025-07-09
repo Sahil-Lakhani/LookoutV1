@@ -42,7 +42,20 @@ struct RecordingView: View {
                 }
 #endif
             }
-            // Top controls at the top leading, rotating around their own center
+            // .overlay(alignment: .topLeading) {
+            //     HStack {
+            //         Text(vm.formattedRecordingDuration)
+            //             .font(.title3)
+            //             .foregroundColor(.white)
+            //             .padding(.trailing, 2)
+            //         Circle()
+            //             .fill(.red)
+            //             .frame(width: 15, height: 15)
+            //             .opacity(vm.isRecording ? 1 : 0)
+            //     }
+            //     .padding(.all, 18)
+            //     .opacity(vm.currentOverlayMode == .blackout ? 0 : 1)
+            // }
             VStack {
                 HStack(alignment: .top) {
                     topControls
