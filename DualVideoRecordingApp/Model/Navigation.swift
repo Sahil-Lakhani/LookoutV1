@@ -16,6 +16,7 @@ enum NavigationRoutes: RouteProtocol {
     case videoRecordingSettings
     case cameraPreviewSettings
     case storageSettings
+    case howToUseIt
 //    case watchVideo(MovieMedia)
 //    case editVideo(MovieMedia)
     
@@ -32,6 +33,8 @@ enum NavigationRoutes: RouteProtocol {
                 CameraPreviewSettingsView()
             case .storageSettings:
                 StorageSettingsView()
+            case .howToUseIt:
+                HowToUseItView()
             }
         }
     }
