@@ -36,6 +36,21 @@ class WatchConnectivityManager: NSObject, ObservableObject {
             session.delegate = self
             session.activate()
             logger.info("Watch connectivity manager initialized")
+            // After a short delay, request app status from iPhone
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                if session.activationState == .activated {
+                    session.sendMessage(["requestAppStatus": true], replyHandler: { reply in
+                        if let isActive = reply["appActive"] as? Bool {
+                            DispatchQueue.main.async {
+                                self.isPhoneAppActive = isActive
+                                self.logger.info("Received appActive status from iPhone: \(isActive)")
+                            }
+                        }
+                    }, errorHandler: { error in
+                        self.logger.error("Error requesting app status: \(error.localizedDescription)")
+                    })
+                }
+            }
         } else {
             logger.error("Watch connectivity is not supported on this device")
         }
@@ -65,6 +80,9 @@ extension WatchConnectivityManager: WCSessionDelegate {
                     self.isPhoneAppActive = false
                 }
                 self.logger.info("Received action from iPhone: \(action)")
+            } else if let isActive = message["appActive"] as? Bool {
+                self.isPhoneAppActive = isActive
+                self.logger.info("Received appActive status from iPhone: \(isActive)")
             } else {
                 self.logger.warning("Received message without action: \(message)")
             }
@@ -88,6 +106,9 @@ extension WatchConnectivityManager: WCSessionDelegate {
                     self.isPhoneAppActive = false
                 }
                 self.logger.info("Received action with reply handler: \(action)")
+            } else if let isActive = message["appActive"] as? Bool {
+                self.isPhoneAppActive = isActive
+                self.logger.info("Received appActive status from iPhone (reply): \(isActive)")
             } else {
                 self.logger.warning("Received message without action (with reply): \(message)")
             }
