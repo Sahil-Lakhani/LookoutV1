@@ -54,6 +54,19 @@ struct SettingsView: View {
                                 .font(.title2)
                                 .foregroundStyle(.gray.gradient)
                         )
+                        .padding(.leading, 5)
+                        .padding(.trailing, 6)
+                        .listRowBackground(
+                            BottomCornersRoundedBackground(radius: 0)
+                        )
+                        LabelledNavigationLink(
+                            route: .howToUseIt,
+                            title: "How to use?",
+                            subTitle: "Controls",
+                            icon: Image(systemName: "questionmark.circle")
+                                .font(.title)
+                                .foregroundStyle(.gray.gradient)
+                        )
                         .padding(.bottom , 20)
                         .padding(.leading, 5)
                         .padding(.trailing, 6)
