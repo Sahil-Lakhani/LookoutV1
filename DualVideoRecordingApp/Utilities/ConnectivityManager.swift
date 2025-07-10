@@ -52,6 +52,17 @@ class ConnectivityManager: NSObject, ObservableObject {
             completion?(error)
         })
     }
+    
+    // Add this method to allow re-activation of the session
+    func ensureSessionActivated() {
+        if WCSession.isSupported() {
+            let session = WCSession.default
+            session.delegate = self
+            if session.activationState != .activated {
+                session.activate()
+            }
+        }
+    }
 }
 
 extension ConnectivityManager: WCSessionDelegate {

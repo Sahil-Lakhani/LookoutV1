@@ -152,13 +152,14 @@ struct RecordingView: View {
         .onScenePhaseChange { scenePhase in
             switch scenePhase {
             case .active:
+                ConnectivityManager.shared.ensureSessionActivated()
                 ConnectivityManager.shared.sendMessage("appActive")
                 UIApplication.shared.isIdleTimerDisabled = true
                 let isRecording = appCameraState.isRecording
                 self.vm.isRecording = isRecording
                 self.vm.recordingDuration = isRecording ? appCameraState.recordedDuration : 0
             default:
-            ConnectivityManager.shared.sendMessage("appInactive")
+                ConnectivityManager.shared.sendMessage("appInactive")
                 if vm.isRecording {
                     ConnectivityManager.shared.sendMessage("stopRecording")
                 }
