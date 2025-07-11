@@ -14,144 +14,133 @@ struct ContentView: View {
     @State private var isScreenshotSaved = false
 
     var body: some View {
-        VStack {
-            Spacer()
-            HStack(spacing: 25) {
-                Button(action: {
-                    let action = isRecording ? "stopRecording" : "startRecording"
-                    sendMessage(action: action)
-                }) {
-                    let outerCircleSize: CGFloat = 70
-                    let innerCircleSize: CGFloat = outerCircleSize - 0
-                    Image(systemName: isRecording ? "stop.fill" : "circle.fill")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: innerCircleSize, height: innerCircleSize)
-                        .background {
-                            Circle()
-                                .stroke(lineWidth: 2)
-                                .fill(.black.opacity(0.25))
-                                .frame(width: outerCircleSize, height: outerCircleSize)
-                        }
-                }
-                .tint(.red)
-                .frame(width: 70, height: 70)
-                .disabled(!connectivityManager.isPhoneAppActive)
-
-                Button(action: {
-                    WKInterfaceDevice.current().play(.click)
-                    sendMessage(action: "captureScreenshot")
-                    withAnimation {
-                        isScreenshotSaved = true
+        ZStack {
+            // Main content (always at zIndex 0)
+            VStack {
+                Spacer()
+                HStack(spacing: 25) {
+                    Button(action: {
+                        let action = isRecording ? "stopRecording" : "startRecording"
+                        sendMessage(action: action)
+                    }) {
+                        let outerCircleSize: CGFloat = 80
+                        let innerCircleSize: CGFloat = outerCircleSize - 0
+                        Image(isRecording ? "stopRecordButton" : "recordButton")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: innerCircleSize, height: innerCircleSize)
                     }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                    .frame(width: 80, height: 80)
+                    .disabled(!connectivityManager.isPhoneAppActive)
+                    .buttonStyle(.plain)
+
+                    Button(action: {
+                        WKInterfaceDevice.current().play(.click)
+                        sendMessage(action: "captureScreenshot")
                         withAnimation {
-                            isScreenshotSaved = false
+                            isScreenshotSaved = true
+                        } 
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            withAnimation {
+                                isScreenshotSaved = false
+                            }
                         }
+                    }) {
+                        let outerCircleSize: CGFloat = 70
+                        let innerCircleSize: CGFloat = outerCircleSize - 0
+                        Image(systemName: "camera.circle.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: innerCircleSize, height: innerCircleSize)
                     }
-                }) {
-                    let outerCircleSize: CGFloat = 70
-                    let innerCircleSize: CGFloat = outerCircleSize - 0
-                    Image(systemName: "camera.circle.fill")
+                    .frame(width: 70, height: 70)
+                    .disabled(!connectivityManager.isPhoneAppActive)
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 25)
+                .padding(.top, 20)
+
+                Spacer() // Push buttons to the center of the screen
+
+                // Bottom Status Text
+                // VStack(spacing: 8) {
+                //     Group {
+                //         if connectivityManager.isPhoneAppActive {
+                //             HStack(spacing: 8) {
+                //                 Circle()
+                //                     .fill(.green)
+                //                     .frame(width: 12, height: 12)
+                //                 Text("app active")
+                //                     .font(.headline)
+                //                     .foregroundColor(.white)
+                //             }
+                //             .transition(.opacity)
+                //         } else {
+                //             HStack(spacing: 8) {
+                //                 Circle()
+                //                     .fill(.gray)
+                //                     .frame(width: 12, height: 12)
+                //                 Text("app inactive")
+                //                     .font(.headline)
+                //                     .foregroundColor(.white)
+                //             }
+                //             .transition(.opacity)
+                //         }
+                //     }
+                //     .foregroundColor(connectivityManager.isPhoneAppActive ? .gray : .gray)
+                //     .font(.footnote)
+                // }
+                // .padding(.top, 30) // Ensure the text is at the bottom
+            }
+            .padding()
+            .onReceive(connectivityManager.$lastReceivedAction) { action in
+                if action == "stopRecording" {
+                    isRecording = false
+                } else if action == "startRecording" {
+                    isRecording = true
+                }
+            }
+            .zIndex(0)
+
+            // Overlay (always at zIndex 1, only shown when inactive)
+            if !connectivityManager.isPhoneAppActive {
+                Color.black.opacity(0.7)
+                    .edgesIgnoringSafeArea(.all)
+                    .zIndex(1)
+                VStack(spacing: 16) {
+                    Image(systemName: "iphone.slash")
                         .resizable()
                         .scaledToFit()
-                        .frame(width: innerCircleSize, height: innerCircleSize)
-                        // .background {
-                        //     Circle()
-                        //         .stroke(lineWidth: 2)
-                        //         .fill(.black.opacity(0.25))
-                        //         .frame(width: outerCircleSize, height: outerCircleSize)
-                        // }
+                        .frame(width: 40, height: 40)
+                        .foregroundColor(.white)
+                    Text("App is not open on the phone")
+                        .font(.headline)
+                        .multilineTextAlignment(.center)
+                        .foregroundColor(.white)
+                    Button(action: {
+                        // Attempt to send a message to open the app on the phone
+                        sendMessage(action: "openLookout")
+                    }) {
+                        Text("Open Lookout")
+                            .font(.headline)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 10)
+                            .background(Color.white.opacity(0.9))
+                            .foregroundColor(.black)
+                            .cornerRadius(12)
+                    }
+                    .buttonStyle(.plain)
                 }
-                .frame(width: 70, height: 70)
-                .disabled(!connectivityManager.isPhoneAppActive)
-            }
-            .padding(.horizontal, 30)
-            .padding(.top, 20)
-
-            Spacer() // Push buttons to the center of the screen
-
-            // Bottom Status Text
-            VStack(spacing: 8) {
-                // if isRecording {
-                //     HStack(spacing: 8) {
-                //         Circle()
-                //             .fill(.red)
-                //             .frame(width: 12, height: 12)
-                //         Text("Recording")
-                //             .font(.headline)
-                //             .foregroundColor(.white)
-                //     }
-                //     .transition(.opacity)
-                // }
-
-                // if isScreenshotSaved {
-                //     HStack(spacing: 8) {
-                //         Circle()
-                //             .fill(.green)
-                //             .frame(width: 12, height: 12)
-                //         Text("Screenshot Saved")
-                //             .font(.headline)
-                //             .foregroundColor(.white)
-                //     }
-                //     .transition(.opacity)
-                // }
-                Group {
-    if connectivityManager.isPhoneAppActive {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(.green)
-                .frame(width: 12, height: 12)
-            Text("app active")
-                .font(.headline)
-                .foregroundColor(.white)
-        }
-        .transition(.opacity)
-    } else {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(.gray)
-                .frame(width: 12, height: 12)
-            Text("app inactive")
-                .font(.headline)
-                .foregroundColor(.white)
-        }
-        .transition(.opacity)
-    }
-}
-
-                // Text(connectivityManager.isPhoneAppActive ? 
-                    // HStack(spacing: 8) {
-                    //     Circle()
-                    //         .fill(.green)
-                    //         .frame(width: 12, height: 12)
-                    //     Text("App active")
-                    //         .font(.headline)
-                    //         .foregroundColor(.white)
-                    // }
-                    // .transition(.opacity) 
-                //     : HStack(spacing:8){
-                //         Circle()
-                //             .fill(.green)
-                //             .frame(width: 12, height: 12)
-                //         Text("App not active")
-                //             .font(.headline)
-                //             .foregroundColor(.white)
-                //     }
-                //     .transition(.opacity))
-                    .foregroundColor(connectivityManager.isPhoneAppActive ? .gray : .gray)
-                    .font(.footnote)
-            }
-            .padding(.top, 30) // Ensure the text is at the bottom
-        }
-        .padding()
-        .onReceive(connectivityManager.$lastReceivedAction) { action in
-            if action == "stopRecording" {
-                isRecording = false
-            } else if action == "startRecording" {
-                isRecording = true
+                .padding(32)
+                .background(Color.black.opacity(0.8))
+                .cornerRadius(20)
+                .shadow(radius: 10)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .transition(.move(edge: .top))
+                .zIndex(1)
             }
         }
+        .animation(.easeOut(duration: 0.4), value: !connectivityManager.isPhoneAppActive)
     }
 
     private func sendMessage(action: String) {
