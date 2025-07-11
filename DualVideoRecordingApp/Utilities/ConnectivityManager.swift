@@ -9,6 +9,7 @@ import Foundation
 import WatchConnectivity
 import SwiftUI
 import OSLog
+import UIKit
 
 class ConnectivityManager: NSObject, ObservableObject {
     static let shared = ConnectivityManager()
@@ -24,9 +25,19 @@ class ConnectivityManager: NSObject, ObservableObject {
             session.delegate = self
             session.activate()
         }
+        // Observe app active notification
+        NotificationCenter.default.addObserver(self, selector: #selector(appDidBecomeActive), name: UIApplication.didBecomeActiveNotification, object: nil)
     }
-    
-    func sendMessage(_ action: String, completion: ((Error?) -> Void)? = nil) {
+
+    @objc private func appDidBecomeActive() {
+        // Ensure session is activated
+        ensureSessionActivated()
+        // Send appActive message to Watch
+        sendMessage(["appActive": true])
+    }
+
+    // Overload sendMessage to accept dictionary
+    func sendMessage(_ message: [String: Any], completion: ((Error?) -> Void)? = nil) {
         guard WCSession.default.activationState == .activated else {
             let error = NSError(domain: "ConnectivityManager", code: -1, userInfo: [NSLocalizedDescriptionKey: "WCSession is not activated"])
             logger.error("Failed to send message: WCSession is not activated")
@@ -43,14 +54,19 @@ class ConnectivityManager: NSObject, ObservableObject {
         }
         #endif
         
-        logger.info("Sending message to Watch: \(action)")
-        WCSession.default.sendMessage(["action": action], replyHandler: { reply in
+        logger.info("Sending message to Watch: \(message)")
+        WCSession.default.sendMessage(message, replyHandler: { reply in
             self.logger.info("Message sent successfully. Reply: \(reply)")
             completion?(nil)
         }, errorHandler: { error in
             self.logger.error("Error sending message: \(error.localizedDescription)")
             completion?(error)
         })
+    }
+
+    // Keep the old string-based sendMessage for compatibility
+    func sendMessage(_ action: String, completion: ((Error?) -> Void)? = nil) {
+        sendMessage(["action": action], completion: completion)
     }
     
     // Add this method to allow re-activation of the session
@@ -93,16 +109,15 @@ extension ConnectivityManager: WCSessionDelegate {
     }
     
     func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
-        handleReceivedMessage(message)
+        handleReceivedMessage(message, replyHandler: nil)
     }
     
     func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
-        handleReceivedMessage(message)
+        handleReceivedMessage(message, replyHandler: replyHandler)
         logger.info("Sending reply to Watch")
-        replyHandler(["status": "received"])
     }
     
-    private func handleReceivedMessage(_ message: [String : Any]) {
+    private func handleReceivedMessage(_ message: [String : Any], replyHandler: (([String: Any]) -> Void)? = nil) {
         DispatchQueue.main.async {
             if let action = message["action"] as? String {
                 self.logger.info("Received action from Watch: \(action)")
@@ -128,6 +143,11 @@ extension ConnectivityManager: WCSessionDelegate {
                     self.logger.warning("Unknown action received from Watch: \(action)")
                 }
                 self.logger.info("Message processed: \(self.lastReceivedMessage)")
+            } else if let requestStatus = message["requestAppStatus"] as? Bool, requestStatus {
+                // Watch is requesting app status
+                let isActive = UIApplication.shared.applicationState == .active
+                replyHandler?(["appActive": isActive])
+                self.logger.info("Replied to Watch with appActive: \(isActive)")
             } else {
                 self.logger.warning("Received message without action: \(message)")
             }
