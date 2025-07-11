@@ -380,8 +380,21 @@ struct RecordingView: View {
                                 .cornerRadius(100)
                         }
                         .accessibilityLabel("Settings")
-                    }
-                }
+
+                        // mic button
+                //         Button(action: {
+                //             appCameraState.isAudioDeviceEnabled.toggle()
+                //         }) {
+                //             Image(systemName: appCameraState.isAudioDeviceEnabled ? "mic.fill" : "mic.slash.fill")
+                //                 .font(.system(size: 30, weight: .regular))
+                //                 .foregroundColor(appCameraState.isAudioDeviceEnabled ? .green : .red)
+                //                 .padding(10)
+                //                 .background(.ultraThinMaterial)
+                //                 .cornerRadius(100)
+                //         }
+                //         .accessibilityLabel(appCameraState.isAudioDeviceEnabled ? "Mute Audio" : "Unmute Audio")
+                //     }
+                // }
             // }
             Spacer()
             RecordButton(isRecording: vm.isRecording, rotation: {
