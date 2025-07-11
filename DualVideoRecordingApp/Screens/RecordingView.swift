@@ -394,8 +394,8 @@ struct RecordingView: View {
                 //         }
                 //         .accessibilityLabel(appCameraState.isAudioDeviceEnabled ? "Mute Audio" : "Unmute Audio")
                 //     }
-                // }
-            // }
+                }
+            }
             Spacer()
             RecordButton(isRecording: vm.isRecording, rotation: {
                 switch orientation {
