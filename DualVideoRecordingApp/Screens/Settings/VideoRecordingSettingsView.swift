@@ -80,22 +80,21 @@ struct VideoRecordingSettingsView: View {
                         .font(.system(.headline, design: .rounded, weight: .bold))
                         .foregroundStyle(.primary)
                     if supportsVideoStabilization {
-                        Text("Current Stabilization Mode:\n'\(currentVideoStabilizationMode.description)\'")
-                            .font(.system(.headline, design: .rounded))
-                            .foregroundStyle(.secondary)
+                        // Text("Current Stabilization Mode:\n'\(currentVideoStabilizationMode.description)\'")
+                        //     .font(.system(.headline, design: .rounded))
+                        //     .foregroundStyle(.secondary)
                         
                         Toggle("Video Stabilization: ", isOn: $isStabilizationOn)
                             .onChange(of: isStabilizationOn) { currentVideoStabilizationMode = $0 ? .auto : .off }
                             .onChange(of: currentVideoStabilizationMode, perform: changeVideoStabilizationMode(to:))
-                            .tint(.yellow)
+                            .tint(.orange)
                         
                         if isStabilizationOn {
                             Text("""
-Video stabilization is enabled, as a result video will be smoother.
 **Note:** It uses additional processing power.
 """)
                                 .font(.system(.headline, design: .rounded))
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(.orange)
                         }
                     } else {
                         Text("Video stabilization is not supported on this device.")
@@ -133,15 +132,28 @@ Video stabilization is enabled, as a result video will be smoother.
     var recordingFormatPicker: some View {
         Picker("Recording Format", selection: $currentVideoFormat) {
             ForEach(supportedVideoFormats, id: \.self) { format in
-                Text(AppCameraState.formatDescription(for: format))
+                Text(resolutionLabel(for: format))
+                // Text(AppCameraState.formatDescription(for: format))
                     .tag(format)
             }
         }
+        .tint(.orange)
         .pickerStyle(.segmented)
         .onChange(
             of: self.currentVideoFormat,
             perform: changeVideoFormat(format:)
         )
+    }
+    
+    private func resolutionLabel(for format: AVCaptureDevice.Format) -> String {
+        let dimensions = format.formatDescription.dimensions
+        if dimensions.width == 1280 && dimensions.height == 720 {
+            return "Low Res"
+        } else if dimensions.width == 1920 && dimensions.height == 1080 {
+            return "High Res"
+        } else {
+            return AppCameraState.formatDescription(for: format)
+        }
     }
     
     var frameRatePicker: some View {
